@@ -1,0 +1,3 @@
+@echo off
+echo Starting Text to Handwriting Next.js app for testing...
+npm run dev

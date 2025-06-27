@@ -55,3 +55,11 @@
 - Improved component structure
 - Enhanced reusability with React hooks
 - Separated concerns between UI and logic 
+
+## Enhancements and Bug Fixes
+
+- Fixed Text Input Issue: We identified that the overlay element used for shadow/scanner effects was blocking text input. We fixed it by adding pointer-events: none to the overlay so that the user can interact with the text field underneath.
+- Restored Shadow and Scanner Effects: We properly implemented the shadow and scanner effects by using both the CSS classes and dynamic styling based on the legacy implementation.
+- Improved Multi-Page Generation: We enhanced the page generation process to maintain consistent margins and styles across all pages, preserving formatting during multi-page documents.
+- Enhanced UI with Thumbnails: We added a thumbnail system for better visualization and management of multi-page documents, making it easier to navigate between pages.
+- Added External Text Areas: We implemented optional side and top text areas that don't interfere with the main content, allowing users to keep notes separate from the handwritten text.

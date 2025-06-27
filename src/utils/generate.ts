@@ -219,38 +219,7 @@ export const renderOutput = (
   }
 };
 
-/**
- * Set event listeners for image manipulation
- */
-function setRemoveImageListeners(outputContainer: HTMLElement) {
-  // Remove image listeners
-  outputContainer.querySelectorAll('.output-image-container > .close-button').forEach((closeButton) => {
-    closeButton.addEventListener('click', (e) => {
-      const target = e.target as HTMLElement;
-      const index = Number(target.dataset.index);
-      outputImages.splice(index, 1);
-      renderOutput(outputImages, outputContainer);
-    });
-  });
 
-  // Move left listeners
-  outputContainer.querySelectorAll('.move-left').forEach((leftButton) => {
-    leftButton.addEventListener('click', (e) => {
-      const target = e.target as HTMLElement;
-      const index = Number(target.dataset.index);
-      moveLeft(index, outputContainer);
-    });
-  });
-
-  // Move right listeners
-  outputContainer.querySelectorAll('.move-right').forEach((rightButton) => {
-    rightButton.addEventListener('click', (e) => {
-      const target = e.target as HTMLElement;
-      const index = Number(target.dataset.index);
-      moveRight(index, outputContainer);
-    });
-  });
-}
 
 /**
  * Convert DIV to image using html2canvas
@@ -350,8 +319,6 @@ export const generateImages = async (
     
     // Store the initial content and styling
     const initialPaperContent = paperContentEl.innerHTML;
-    const hasMargins = pageEl.classList.contains('margined');
-    const hasLines = pageEl.classList.contains('lines');
     const initialStyles = {
       fontSize: paperContentEl.style.fontSize,
       fontFamily: paperContentEl.style.fontFamily,

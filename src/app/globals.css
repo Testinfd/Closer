@@ -4,35 +4,47 @@ body {
   margin: 0px;
 }
 body {
-  --background-primary: #fff;
-  --font-color-primary: #333;
-  --elevation-background: #f3f3f3;
-  --link-color: #006eb8;
-  --font-family-primary: 'Roboto', Arial;
+  /* Light Theme */
+  --background-primary: #ffffff;
+  --font-color-primary: #2c3e50; /* Dark Blue-Gray */
+  --elevation-background: #f8f9fa; /* Very Light Gray */
+  --link-color: #3498db; /* Bright Blue */
+  --font-family-primary: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
   --handwriting-font: 'Homemade Apple', cursive;
-  --primary-color: #1a73e8;
-  --ink-color: #000f55;
-  --label-color: #333;
-  --field-borders: #e0e0e0;
-  --primary-button-bg: #1d1d1d;
-  --primary-button-color: #eee;
-  --font-color-delete: #dc3545;
-  --delete-button-borders: #dc3545;
+  --primary-color: #3498db; /* Bright Blue */
+  --primary-color-rgb: 52, 152, 219; /* RGB for Bright Blue */
+  --secondary-color: #2ecc71; /* Green */
+  --accent-color: #e74c3c; /* Red */
+  --accent-color-rgb: 231, 76, 60; /* RGB for Red */
+  --ink-color: #000f55; /* Keeping original ink color for now, can be adjusted */
+  --label-color: #555;
+  --field-borders: #bdc3c7; /* Light Silver */
+  --primary-button-bg: var(--primary-color);
+  --primary-button-color: #ffffff;
+  --secondary-button-bg: var(--secondary-color);
+  --secondary-button-color: #ffffff;
+  --font-color-delete: var(--accent-color);
+  --delete-button-borders: var(--accent-color);
 
   width: 100%;
   overflow-x: hidden;
 }
 body.dark {
-  --background-primary: #121212;
-  --font-color-primary: #ccc;
-  --elevation-background: #1d1d1d;
-  --link-color: #09f;
-  --label-color: #aaa;
-  --field-borders: #222;
-  --primary-button-bg: #eee;
-  --primary-button-color: #111;
-  --delete-button-borders: #e76f7b;
-  --font-color-delete: #e76f7b;
+  /* Dark Theme */
+  --background-primary: #1a1a1a; /* Darker Gray */
+  --font-color-primary: #ecf0f1; /* Light Gray */
+  --elevation-background: #2c3e50; /* Dark Blue-Gray */
+  --link-color: #3498db; /* Bright Blue */
+  --primary-color-rgb: 52, 152, 219; /* Ensure this is defined for dark mode too */
+  --accent-color-rgb: 231, 76, 60; /* Ensure this is defined for dark mode too */
+  --label-color: #bdc3c7; /* Light Silver */
+  --field-borders: #34495e; /* Darker Blue-Gray */
+  --primary-button-bg: var(--primary-color);
+  --primary-button-color: #ffffff;
+  --secondary-button-bg: var(--secondary-color);
+  --secondary-button-color: #ffffff;
+  --delete-button-borders: var(--accent-color);
+  --font-color-delete: var(--accent-color);
 }
 @font-face {
   font-family: 'Hindi_Font';
@@ -46,7 +58,7 @@ body.dark {
 body {
   background-color: var(--background-primary);
   color: var(--font-color-primary);
-  padding: 100px 100px;
+  padding: 40px 60px; /* Reduced overall padding for a more compact feel */
   font-size: 1.05rem;
   font-family: var(--font-family-primary);
 }
@@ -61,13 +73,32 @@ button {
   border: none;
   background-color: var(--elevation-background);
   color: var(--font-color-primary);
-  border-radius: 6px;
+  border-radius: 8px; /* Slightly more rounded corners */
   cursor: pointer;
-  padding: 10px 20px;
+  padding: 12px 24px; /* Increased padding for better touch targets */
+  font-weight: 500;
+  transition: background-color 0.2s ease-in-out, transform 0.1s ease;
+}
+
+button:hover {
+  transform: translateY(-1px); /* Subtle lift effect */
+}
+
+button:active {
+  transform: translateY(0px);
 }
 
 h1 {
-  font-size: 3rem;
+  font-size: 2.5rem; /* Slightly reduced for a cleaner look */
+  font-weight: 600; /* Bolder for emphasis */
+  margin-bottom: 1.5rem;
+}
+
+h2 {
+  font-size: 1.75rem;
+  font-weight: 500;
+  margin-top: 2rem;
+  margin-bottom: 1rem;
 }
 
 label {
@@ -81,34 +112,70 @@ label.block {
 }
 
 select {
-  background: url('/images/dropdown.svg') no-repeat;
-  background-position: calc(100% - 14px) center;
-  border: none;
-  color: #333;
-  border-radius: 4px;
-  font-size: 0.9rem;
+  background: url('/images/dropdown.svg') no-repeat right 12px center;
+  background-size: 16px;
+  border: 1px solid var(--field-borders);
+  color: var(--font-color-primary);
+  background-color: var(--background-primary);
+  border-radius: 8px;
+  font-size: 0.95rem;
+  padding: 12px 36px 12px 12px; /* Adjusted padding for icon */
   display: block;
   -moz-appearance: none;
   -webkit-appearance: none;
+  appearance: none;
+  transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
 }
 
+select:hover {
+  border-color: var(--primary-color);
+}
+
+select:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 2px rgba(var(--primary-color-rgb), 0.2); /* Use RGB for box-shadow */
+}
+
+
 option {
-  color: #333;
+  color: #333; /* This might need adjustment if using a very dark theme for the dropdown itself */
+  background-color: var(--background-primary); /* Ensure options have background */
 }
 
 body.dark select {
-  background: url('/images/dropdown-white.svg') no-repeat;
-  background-position: calc(100% - 14px) center;
+  background: url('/images/dropdown-white.svg') no-repeat right 12px center;
+  background-size: 16px;
+  color: var(--font-color-primary);
+  background-color: var(--elevation-background); /* Darker background for select in dark mode */
+}
+
+body.dark option {
+  background-color: var(--elevation-background);
+  color: var(--font-color-primary);
 }
 
 input {
-  padding: 8px 13px;
-  border-radius: 4px;
-  border: 1px solid var(--elevation-background);
+  padding: 12px 15px;
+  border-radius: 8px;
+  border: 1px solid var(--field-borders);
   color: var(--font-color-primary);
-  background-color: transparent;
+  background-color: var(--background-primary);
   display: block;
+  font-size: 0.95rem;
+  transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
 }
+
+input:hover {
+  border-color: var(--primary-color);
+}
+
+input:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 2px rgba(var(--primary-color-rgb), 0.2); /* Use RGB for box-shadow */
+}
+
 input[type='number']::-webkit-outer-spin-button,
 input[type='number']::-webkit-inner-spin-button {
   -webkit-appearance: none;
@@ -162,7 +229,24 @@ ul.info-ul > li {
   background-color: var(--primary-button-bg);
   color: var(--primary-button-color);
   font-size: 1rem;
+  padding: 12px 28px; /* Ensure padding consistency */
 }
+
+.generate-image-button:hover {
+  background-color: var(--primary-color); /* Darken or lighten primary color on hover */
+  filter: brightness(90%);
+}
+
+.draw-button { /* Assuming .draw-button is similar to a secondary action */
+  background-color: var(--elevation-background);
+  color: var(--font-color-primary);
+  border: 1px solid var(--field-borders);
+}
+
+.draw-button:hover {
+  background-color: var(--field-borders);
+}
+
 .github-corner {
   position: absolute;
   top: 0;
@@ -172,17 +256,32 @@ ul.info-ul > li {
 body.dark .github-corner {
   filter: invert(100%);
 }
-.imp-button {
-  color: var(--font-color-primary);
-  border: 1px solid var(--font-color-primary);
+.imp-button { /* Important secondary actions */
+  background-color: transparent;
+  color: var(--primary-color);
+  border: 1px solid var(--primary-color);
+  padding: 10px 20px; /* Slightly smaller padding than primary */
 }
+
+.imp-button:hover {
+  background-color: rgba(var(--primary-color-rgb), 0.1); /* Subtle background on hover */
+}
+
 .delete-button {
+  background-color: transparent;
   color: var(--font-color-delete);
   border: 1px solid var(--delete-button-borders);
-  background-color: var(--elevation-background);
+  padding: 10px 20px;
 }
+
+.delete-button:hover {
+  background-color: rgba(var(--accent-color-rgb), 0.1); /* Using accent color RGB for hover bg */
+  color: var(--accent-color); /* Ensure text remains visible and reinforces action */
+  border-color: var(--accent-color);
+}
+
 .customization-col {
-  padding: 0px 50px !important;
+  padding: 0px 30px !important; /* Reduced side padding */
 }
 
 .left-margin-and-content {
@@ -343,7 +442,7 @@ body.dark .github-corner {
   }
   h1 {
     margin-top: 20px;
-    font-size: 3rem;
+    font-size: 2.2rem; /* Adjusted for smaller screens */
   }
   .padding-around {
     padding-left: 5px;
@@ -388,17 +487,37 @@ body.dark .github-corner {
 }
 
 fieldset {
-  padding: 17px 20px;
-  border-radius: 5px;
+  padding: 20px;
+  border-radius: 8px; /* Consistent with other elements */
   border: 1px solid var(--field-borders);
-  margin-top: 16px;
+  margin-top: 24px; /* Increased top margin for better separation */
+  background-color: var(--elevation-background); /* Subtle background to lift it */
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05); /* Soft shadow for depth */
+}
+
+body.dark fieldset {
+  background-color: var(--background-primary); /* Slightly different from elevation for contrast */
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
 legend {
-  font-size: 0.88rem;
-  padding: 0px 6px;
+  font-size: 1rem; /* Larger for better readability */
+  font-weight: 500; /* Medium weight */
+  padding: 0px 10px; /* More horizontal padding */
   color: var(--font-color-primary);
+  background-color: var(--elevation-background); /* Match fieldset or make it distinct */
+  border-radius: 6px; /* Rounded corners for the legend */
+  border: 1px solid var(--field-borders);
+  margin-left: -10px; /* Align with fieldset padding */
+  position: relative;
+  top: -0.5em; /* Adjust vertical position if needed */
 }
+
+body.dark legend {
+  background-color: var(--background-primary);
+  border-color: var(--field-borders);
+}
+
 
 select,
 input {

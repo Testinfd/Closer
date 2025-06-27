@@ -1,17 +1,36 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Homemade_Apple, Caveat, Liu_Jian_Mao_Cao, Indie_Flower, Zeyada } from 'next/font/google';
 import "./globals.css";
 import Script from 'next/script';
 import ClientConfig from './client-config';
 
 // Google fonts for handwriting
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const homemadeApple = Homemade_Apple({
+  variable: "--font-homemade-apple",
+  weight: "400",
   subsets: ["latin"],
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+const caveat = Caveat({
+  variable: "--font-caveat",
+  subsets: ["latin"],
+});
+
+const liuJianMaoCao = Liu_Jian_Mao_Cao({
+  variable: "--font-liu-jian-mao-cao",
+  weight: "400",
+  subsets: ["latin"],
+});
+
+const indieFlower = Indie_Flower({
+  variable: "--font-indie-flower",
+  weight: "400",
+  subsets: ["latin"],
+});
+
+const zeyada = Zeyada({
+  variable: "--font-zeyada",
+  weight: "400",
   subsets: ["latin"],
 });
 
@@ -27,14 +46,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <head>
-        <link 
-          href="https://fonts.googleapis.com/css2?family=Homemade+Apple&family=Caveat&family=Liu+Jian+Mao+Cao&family=Indie+Flower&family=Zeyada&display=swap" 
-          rel="stylesheet"
-        />
-      </head>
+      
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${homemadeApple.variable} ${caveat.variable} ${liuJianMaoCao.variable} ${indieFlower.variable} ${zeyada.variable} antialiased`}
       >
         <ClientConfig />
         {children}

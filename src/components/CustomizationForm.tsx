@@ -16,12 +16,7 @@ interface CustomizationFormProps {
   setTopPadding: (topPadding: string) => void;
   inkColor: string;
   setInkColor: (color: string) => void;
-  paperColor: string;
-  setPaperColor: (color: string) => void;
   generateImages: () => void;
-  showDrawingCanvas: () => void;
-  isDark: boolean;
-  setIsDark: (isDark: boolean) => void;
   hasLines: boolean;
   setHasLines: (hasLines: boolean) => void;
   hasMargins: boolean;
@@ -49,12 +44,7 @@ const CustomizationForm: React.FC<CustomizationFormProps> = ({
   setTopPadding,
   inkColor,
   setInkColor,
-  paperColor,
-  setPaperColor,
   generateImages,
-  showDrawingCanvas,
-  isDark,
-  setIsDark,
   hasLines,
   setHasLines,
   hasMargins,

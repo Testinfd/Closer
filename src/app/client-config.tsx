@@ -13,7 +13,7 @@ export default function ClientConfig() {
         if (html2canvas) {
           console.log('html2canvas loaded successfully');
           // Make it globally available for legacy code
-          (window as any).html2canvas = html2canvas;
+          window.html2canvas = html2canvas;
         } else {
           console.warn('html2canvas not found, some features may not work');
         }

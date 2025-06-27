@@ -2,13 +2,11 @@
  * This utility handles dynamic loading of html2canvas in browser environments
  */
 
-import dynamic from 'next/dynamic';
-
 // Function to dynamically load html2canvas only on client-side
-let html2canvasPromise: Promise<any> | null = null;
+let html2canvasPromise: Promise<typeof import('html2canvas').default | null> | null = null;
 let html2canvasLoaded = false;
 
-export const loadHtml2Canvas = async (): Promise<any> => {
+export const loadHtml2Canvas = async (): Promise<typeof import('html2canvas').default | null> => {
   // Return cached promise if already loading
   if (html2canvasPromise) {
     return html2canvasPromise;
@@ -17,7 +15,7 @@ export const loadHtml2Canvas = async (): Promise<any> => {
   // Check if we're in the browser environment
   if (typeof window === 'undefined') {
     console.warn('html2canvas cannot be loaded in a server environment');
-    return null;
+    return Promise.resolve(null);
   }
 
   // Create a new promise to load html2canvas

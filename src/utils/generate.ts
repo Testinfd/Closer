@@ -1,4 +1,3 @@
-import { downloadFile } from './helpers';
 import { loadHtml2Canvas } from './html2canvas-loader';
 import { jsPDF } from 'jspdf';
 

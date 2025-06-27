@@ -1,12 +1,12 @@
 'use client';
 
-import React, { useState, useRef, useEffect, ChangeEvent } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import Paper from '../components/Paper';
 import CustomizationForm from '../components/CustomizationForm';
 import DrawingCanvas from '../components/DrawingCanvas';
 import LoadingSpinner from '../components/LoadingSpinner';
 import { generateImages, downloadAsPDF, deleteAllImages } from '../utils/generate';
-import { PaperSize, PaperSizes } from '../types';
+import { PaperSizes } from '../types';
 
 const PAPER_SIZES: PaperSizes = {
   A4: { width: 210, height: 297 },
@@ -49,11 +49,11 @@ export default function Home() {
   
   // Paper Styling State
   const [inkColor, setInkColor] = useState<string>('#000f55');
-  const [paperColor, setPaperColor] = useState<string>('#ffffff');
+  const [paperColor] = useState<string>('#ffffff');
   const [fontSize, setFontSize] = useState<string>('10');
   const [letterSpacing, setLetterSpacing] = useState<string>('0');
   const [wordSpacing, setWordSpacing] = useState<string>('0');
-  const [lineHeight, setLineHeight] = useState<string>('1.5');
+  const [lineHeight] = useState<string>('1.5');
   const [topPadding, setTopPadding] = useState<string>('5');
   const [fontFamily, setFontFamily] = useState<string>("'Homemade Apple', cursive");
   
@@ -62,7 +62,7 @@ export default function Home() {
   const [hasLines, setHasLines] = useState<boolean>(true);
   const [hasMargins, setHasMargins] = useState<boolean>(true);
   const [drawingCanvasVisible, setDrawingCanvasVisible] = useState<boolean>(false);
-  const [outputImages, setOutputImages] = useState<HTMLCanvasElement[]>([]);
+  
   const [isGenerating, setIsGenerating] = useState<boolean>(false);
   const [pageEffect, setPageEffect] = useState<string>('shadows');
   const [resolution, setResolution] = useState<number>(2);
@@ -70,7 +70,7 @@ export default function Home() {
   
   // Refs
   const paperRef = useRef<HTMLDivElement>(null);
-  const outputContainerRef = useRef<HTMLDivElement>(null);
+  
 
   useEffect(() => {
     const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
@@ -108,7 +108,7 @@ export default function Home() {
     setIsGenerating(true);
     
     try {
-      const images = await generateImages(
+      await generateImages(
         paperEl,
         paperContentEl,
         resolution,
@@ -123,7 +123,7 @@ export default function Home() {
         inkColor
       );
       
-      setOutputImages(images);
+      
     } catch (error) {
       console.error('Error generating images:', error);
     } finally {
@@ -136,7 +136,7 @@ export default function Home() {
     if (!outputContainer) return;
     
     deleteAllImages(outputContainer);
-    setOutputImages([]);
+    
   };
 
   const handleDownloadPDF = () => {
@@ -245,12 +245,7 @@ export default function Home() {
               setTopPadding={handleTopPaddingChange}
               inkColor={inkColor}
               setInkColor={setInkColor}
-              paperColor={paperColor}
-              setPaperColor={setPaperColor}
               generateImages={handleGenerateImages}
-              showDrawingCanvas={() => setDrawingCanvasVisible(true)}
-              isDark={isDark}
-              setIsDark={setIsDark}
               hasLines={hasLines}
               setHasLines={setHasLines}
               hasMargins={hasMargins}
@@ -271,7 +266,7 @@ export default function Home() {
       <section>
         <h2 id="output-header">Output</h2>
         <div id="output" className="output" style={{ textAlign: 'center' }}>
-          Click "Generate Image" Button to generate new image.
+          Click &quot;Generate Image&quot; Button to generate new image.
         </div>
         <div style={{ textAlign: 'center', padding: '30px' }}>
           <button className="imp-button" id="download-as-pdf-button" onClick={handleDownloadPDF}>

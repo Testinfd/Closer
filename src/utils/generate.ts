@@ -158,10 +158,15 @@ export const renderOutput = (
     // Controls container
     const controlsContainer = document.createElement('div');
     controlsContainer.className = 'output-image-controls';
+
+    // Download PNG button
+    const downloadPNGButton = document.createElement('button');
+    downloadPNGButton.className = 'download-png-button imp-button'; // Re-use imp-button style or create a new one
+    downloadPNGButton.textContent = 'Download PNG';
     
     // Close button
     const closeButton = document.createElement('button');
-    closeButton.className = 'close-button';
+    closeButton.className = 'close-button delete-button'; // Re-use delete-button style
     closeButton.dataset.index = index.toString();
     closeButton.innerHTML = '&times;';
     
@@ -180,6 +185,7 @@ export const renderOutput = (
     
     // Add elements to container
     controlsContainer.appendChild(moveLeftButton);
+    controlsContainer.appendChild(downloadPNGButton); // Add PNG download button
     controlsContainer.appendChild(closeButton);
     controlsContainer.appendChild(moveRightButton);
     
@@ -200,6 +206,10 @@ export const renderOutput = (
     
     moveRightButton.addEventListener('click', () => {
       moveRight(index, outputContainer);
+    });
+
+    downloadPNGButton.addEventListener('click', () => {
+      downloadImageAsPNG(canvas, `inkwell-page-${index + 1}.png`);
     });
   }
   
@@ -458,6 +468,23 @@ export const downloadAsPDF = (paperSize = {width: 210, height: 297}): void => {
   });
   
   pdf.save(`handwriting.pdf`);
+};
+
+/**
+ * Download a single canvas image as PNG
+ */
+export const downloadImageAsPNG = (canvas: HTMLCanvasElement, filename: string): void => {
+  if (!canvas) {
+    alert('No image to download');
+    return;
+  }
+  const dataURL = canvas.toDataURL('image/png');
+  const link = document.createElement('a');
+  link.href = dataURL;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
 };
 
 /**

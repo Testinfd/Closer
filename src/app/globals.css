@@ -266,6 +266,8 @@ body.dark .github-corner {
   height: 100%;
   width: 100%;
   display: none;
+  pointer-events: none;
+  z-index: 1;
 }
 
 .overlay.shadows {
@@ -499,4 +501,110 @@ body {
   .text-balance {
     text-wrap: balance;
   }
+}
+
+/* Output Thumbnails */
+.thumbnail-container {
+  display: flex;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  margin: 15px 0;
+  padding: 10px;
+  background-color: var(--elevation-background);
+  border-radius: 5px;
+}
+
+.page-thumbnail {
+  width: 80px;
+  height: 120px;
+  margin-right: 10px;
+  border: 2px solid transparent;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.page-thumbnail img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.page-thumbnail.active {
+  border-color: var(--primary-color);
+  transform: scale(1.05);
+}
+
+.page-thumbnail .page-number {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: rgba(0,0,0,0.5);
+  color: white;
+  text-align: center;
+  font-size: 10px;
+  padding: 2px 0;
+}
+
+.output-image-container {
+  position: relative;
+  display: inline-block;
+  margin: 15px;
+}
+
+.output-image-controls {
+  display: flex;
+  align-items: center;
+  margin-top: 10px;
+  justify-content: center;
+}
+
+.output-image-controls button {
+  margin: 0 5px;
+  padding: 5px 10px;
+  font-size: 0.9rem;
+}
+
+.output-image {
+  max-height: 500px;
+  max-width: 350px;
+  box-shadow: 0 3px 6px rgba(0,0,0,0.16);
+}
+
+/* External Text Areas */
+.external-text-container {
+  display: flex;
+  margin-bottom: 15px;
+}
+
+.side-text-area, .top-text-area {
+  border: 1px solid var(--field-borders);
+  padding: 10px;
+  background: var(--elevation-background);
+  color: var(--font-color-primary);
+}
+
+.side-text-area {
+  width: 150px;
+  max-height: 400px;
+  margin-right: 15px;
+  overflow-y: auto;
+}
+
+.top-text-area {
+  width: 100%;
+  height: 100px;
+  margin-bottom: 15px;
+  overflow-y: auto;
+}
+
+.external-text-toggle {
+  margin-bottom: 10px;
+}
+
+.external-text-toggle button {
+  margin-right: 10px;
+  padding: 5px 10px;
+  font-size: 0.8rem;
 }

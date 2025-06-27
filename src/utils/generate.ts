@@ -29,11 +29,34 @@ export const applyPaperStyles = (
   paperContentEl.style.wordSpacing = wordSpacing;
   paperContentEl.style.backgroundColor = 'transparent';
   pageEl.style.filter = '';
+  
+  // Get the overlay element
+  const overlayEl = pageEl.querySelector('.overlay') as HTMLElement;
+  if (!overlayEl) return;
+
+  // Reset overlay styles
+  overlayEl.style.background = '';
+  overlayEl.classList.remove('shadows', 'scanner');
 
   if (pageEffect === 'shadows') {
-    pageEl.style.filter = 'drop-shadow(3px 3px 3px rgba(0,0,0,0.2))';
+    // Add shadows effect
+    overlayEl.classList.add('shadows');
+    pageEl.style.boxShadow = '12px 12px 24px 0 rgba(0,0,0,0.2)';
+    
+    // Add gradient background similar to legacy implementation
+    overlayEl.style.background = `linear-gradient(${
+      Math.random() * 360
+    }deg, #0006, #0000)`;
   } else if (pageEffect === 'scanner') {
+    // Add scanner effect
+    overlayEl.classList.add('shadows'); // Use shadows class to make overlay visible
     paperContentEl.style.backgroundColor = '#fff8';
+    
+    // For scanner effect, use a more targeted gradient angle
+    const gradientAngle = Math.floor(Math.random() * (120 - 50 + 1)) + 50;
+    overlayEl.style.background = `linear-gradient(${gradientAngle}deg, #0008, #0000)`;
+    
+    // Apply higher contrast for scanner effect during image generation
   }
 };
 
@@ -74,46 +97,120 @@ export const renderOutput = (
     return;
   }
 
+  // Create a thumbnail container
+  const thumbnailContainer = document.createElement('div');
+  thumbnailContainer.className = 'thumbnail-container';
+  
+  // Create the main image display area
+  const mainImageContainer = document.createElement('div');
+  mainImageContainer.className = 'main-image-container';
+  
+  // Create thumbnails for each image
   images.forEach((canvas, index) => {
+    // Create thumbnail
+    const thumbnail = document.createElement('div');
+    thumbnail.className = `page-thumbnail ${index === 0 ? 'active' : ''}`;
+    thumbnail.dataset.index = index.toString();
+    
+    // Thumbnail image
+    const thumbImg = document.createElement('img');
+    thumbImg.src = canvas.toDataURL('image/jpeg');
+    thumbImg.loading = 'lazy';
+    
+    // Page number
+    const pageNumber = document.createElement('div');
+    pageNumber.className = 'page-number';
+    pageNumber.textContent = `${index + 1}`;
+    
+    // Add to thumbnail
+    thumbnail.appendChild(thumbImg);
+    thumbnail.appendChild(pageNumber);
+    
+    // Add click handler to switch to this image
+    thumbnail.addEventListener('click', () => {
+      // Update active thumbnail
+      thumbnailContainer.querySelectorAll('.page-thumbnail').forEach(thumb => 
+        thumb.classList.remove('active')
+      );
+      thumbnail.classList.add('active');
+      
+      // Update main image display
+      updateMainImage(images[index], index);
+    });
+    
+    thumbnailContainer.appendChild(thumbnail);
+  });
+  
+  // Initial main image display (show first image)
+  function updateMainImage(canvas: HTMLCanvasElement, index: number) {
+    mainImageContainer.innerHTML = '';
+    
+    // Create image container
     const imageContainer = document.createElement('div');
     imageContainer.className = 'output-image-container';
-
+    
     // Image element
     const img = document.createElement('img');
     img.src = canvas.toDataURL('image/jpeg');
     img.className = 'output-image';
     img.loading = 'lazy';
-
+    
+    // Controls container
+    const controlsContainer = document.createElement('div');
+    controlsContainer.className = 'output-image-controls';
+    
     // Close button
     const closeButton = document.createElement('button');
     closeButton.className = 'close-button';
     closeButton.dataset.index = index.toString();
     closeButton.innerHTML = '&times;';
-
-    // Move buttons
+    
+    // Movement buttons
     const moveLeftButton = document.createElement('button');
     moveLeftButton.className = 'move-left';
     moveLeftButton.dataset.index = index.toString();
     moveLeftButton.innerHTML = '&larr;';
     moveLeftButton.disabled = index === 0;
-
+    
     const moveRightButton = document.createElement('button');
     moveRightButton.className = 'move-right';
     moveRightButton.dataset.index = index.toString();
     moveRightButton.innerHTML = '&rarr;';
     moveRightButton.disabled = index === images.length - 1;
-
+    
     // Add elements to container
+    controlsContainer.appendChild(moveLeftButton);
+    controlsContainer.appendChild(closeButton);
+    controlsContainer.appendChild(moveRightButton);
+    
     imageContainer.appendChild(img);
-    imageContainer.appendChild(closeButton);
-    imageContainer.appendChild(moveLeftButton);
-    imageContainer.appendChild(moveRightButton);
-
-    outputContainer.appendChild(imageContainer);
-  });
-
-  // Set up event listeners
-  setRemoveImageListeners(outputContainer);
+    imageContainer.appendChild(controlsContainer);
+    
+    mainImageContainer.appendChild(imageContainer);
+    
+    // Set up event listeners
+    closeButton.addEventListener('click', () => {
+      outputImages.splice(index, 1);
+      renderOutput(outputImages, outputContainer);
+    });
+    
+    moveLeftButton.addEventListener('click', () => {
+      moveLeft(index, outputContainer);
+    });
+    
+    moveRightButton.addEventListener('click', () => {
+      moveRight(index, outputContainer);
+    });
+  }
+  
+  // Add thumbnails and main image to output container
+  outputContainer.appendChild(thumbnailContainer);
+  outputContainer.appendChild(mainImageContainer);
+  
+  // Show first image
+  if (images.length > 0) {
+    updateMainImage(images[0], 0);
+  }
 
   // Update header
   const outputHeader = document.querySelector('#output-header');
@@ -251,34 +348,70 @@ export const generateImages = async (
       );
     }
     
+    // Store the initial content and styling
     const initialPaperContent = paperContentEl.innerHTML;
-    const splitContent = initialPaperContent.split(/(\s+)/);
+    const hasMargins = pageEl.classList.contains('margined');
+    const hasLines = pageEl.classList.contains('lines');
+    const initialStyles = {
+      fontSize: paperContentEl.style.fontSize,
+      fontFamily: paperContentEl.style.fontFamily,
+      color: paperContentEl.style.color,
+      lineHeight: paperContentEl.style.lineHeight,
+      letterSpacing: paperContentEl.style.letterSpacing,
+      wordSpacing: paperContentEl.style.wordSpacing,
+      paddingTop: paperContentEl.style.paddingTop
+    };
     
-    // Multiple images
-    let wordCount = 0;
-    for (let i = 0; i < totalPages; i++) {
-      paperContentEl.innerHTML = '';
-      const wordArray = [];
-      let wordString = '';
+    try {
+      // Split text by words for better page breaks
+      const splitContent = initialPaperContent.split(/(\s+)/);
       
-      while (
-        paperContentEl.scrollHeight <= clientHeight &&
-        wordCount <= splitContent.length
-      ) {
-        wordString = wordArray.join(' ');
-        wordArray.push(splitContent[wordCount]);
-        paperContentEl.innerHTML = wordArray.join(' ');
-        wordCount++;
+      // Generate multiple images
+      let wordCount = 0;
+      for (let i = 0; i < totalPages; i++) {
+        // Reset content for each page
+        paperContentEl.innerHTML = '';
+        
+        // Build page content word by word until we reach page height
+        const wordArray = [];
+        let wordString = '';
+        
+        // Fill page until full or end of content
+        while (paperContentEl.scrollHeight <= clientHeight && wordCount < splitContent.length) {
+          wordString = wordArray.join('');
+          wordArray.push(splitContent[wordCount]);
+          paperContentEl.innerHTML = wordArray.join('');
+          wordCount++;
+        }
+        
+        // Step back one word if we exceed page height (except for first page)
+        if (paperContentEl.scrollHeight > clientHeight && wordCount > 1) {
+          wordCount--;
+          paperContentEl.innerHTML = wordString;
+        }
+        
+        // Reset scroll position before capture
+        pageEl.scrollTo(0, 0);
+        
+        // Ensure consistent styles for every page
+        paperContentEl.style.fontSize = initialStyles.fontSize;
+        paperContentEl.style.fontFamily = initialStyles.fontFamily;
+        paperContentEl.style.color = initialStyles.color;
+        paperContentEl.style.lineHeight = initialStyles.lineHeight;
+        paperContentEl.style.letterSpacing = initialStyles.letterSpacing;
+        paperContentEl.style.wordSpacing = initialStyles.wordSpacing;
+        paperContentEl.style.paddingTop = initialStyles.paddingTop;
+        
+        // Generate image for current page
+        const canvas = await convertDIVToImage(pageEl, resolution, pageEffect);
+        outputImages.push(canvas);
       }
       
-      paperContentEl.innerHTML = wordString;
-      wordCount--;
-      pageEl.scrollTo(0, 0);
-      
-      const canvas = await convertDIVToImage(pageEl, resolution, pageEffect);
-      outputImages.push(canvas);
-      
+      // Restore original content and styles
       paperContentEl.innerHTML = initialPaperContent;
+    } catch (error) {
+      console.error('Error generating multi-page document:', error);
+      alert('An error occurred while generating multiple pages.');
     }
   } else {
     // Single image

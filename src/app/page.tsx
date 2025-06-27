@@ -47,6 +47,11 @@ export default function Home() {
   // Paper Content State
   const [text, setText] = useState<string>('Lorem ipsum dolor sit amet, consectetur adipiscing elit. Ut rhoncus dui eget tortor feugiat iaculis. Morbi et dolor in felis viverra efficitur. Integer id laoreet arcu. Mauris turpis nibh, scelerisque sed tristique non, hendrerit in erat. Duis interdum nisl risus, ac ultrices ipsum auctor at.');
   
+  // External Text Areas
+  const [showExternalText, setShowExternalText] = useState<boolean>(false);
+  const [sideText, setSideText] = useState<string>('Side notes can be added here');
+  const [topText, setTopText] = useState<string>('Top notes can be added here');
+  
   // Paper Styling State
   const [inkColor, setInkColor] = useState<string>('#000f55');
   const [paperColor] = useState<string>('#ffffff');
@@ -198,6 +203,34 @@ export default function Home() {
                 <h2 style={{ marginTop: '0px' }}>Input</h2>
                 <label className="block" htmlFor="note">Type/Paste text here</label>
               </div>
+              
+              {/* External Text Areas Toggle */}
+              <div className="external-text-toggle">
+                <button 
+                  type="button" 
+                  className="imp-button"
+                  onClick={() => setShowExternalText(!showExternalText)}
+                >
+                  {showExternalText ? 'Hide' : 'Show'} External Notes
+                </button>
+              </div>
+              
+              {showExternalText && (
+                <div className="external-text-container">
+                  <div className="side-text-area" 
+                    contentEditable 
+                    suppressHydrationWarning
+                    onInput={(e) => setSideText(e.currentTarget.innerHTML)}
+                    dangerouslySetInnerHTML={{ __html: sideText }}
+                  ></div>
+                  <div className="top-text-area" 
+                    contentEditable 
+                    suppressHydrationWarning
+                    onInput={(e) => setTopText(e.currentTarget.innerHTML)}
+                    dangerouslySetInnerHTML={{ __html: topText }}
+                  ></div>
+                </div>
+              )}
 
               <div className="flex-1 page-container">
                 <Paper

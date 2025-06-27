@@ -53,10 +53,26 @@ const Paper = forwardRef<HTMLDivElement, PaperProps>(({
       
       paperRef.current.style.backgroundColor = paperColor;
       
-      if (pageEffect === 'shadows') {
-        paperRef.current.style.boxShadow = `12px 12px 24px 0 ${shadowColor}`;
-      } else {
-        paperRef.current.style.boxShadow = 'none';
+      const overlayEl = paperRef.current.querySelector('.overlay') as HTMLElement;
+      
+      // Reset overlay styles
+      if (overlayEl) {
+        overlayEl.style.background = '';
+        overlayEl.classList.remove('shadows', 'scanner');
+        
+        // Apply effect
+        if (pageEffect === 'shadows') {
+          paperRef.current.style.boxShadow = `12px 12px 24px 0 ${shadowColor}`;
+          overlayEl.classList.add('shadows');
+        } else if (pageEffect === 'scanner') {
+          paperRef.current.style.boxShadow = 'none';
+          overlayEl.classList.add('shadows'); // Use shadows class to show overlay
+          if (paperContent) {
+            paperContent.style.backgroundColor = '#fff8';
+          }
+        } else {
+          paperRef.current.style.boxShadow = 'none';
+        }
       }
     }
   }, [inkColor, paperColor, shadowColor, fontFamily, fontSize, letterSpacing, wordSpacing, topPadding, pageEffect]);
@@ -95,7 +111,7 @@ const Paper = forwardRef<HTMLDivElement, PaperProps>(({
           dangerouslySetInnerHTML={{ __html: html }}
         />
       </div>
-      <div className={`overlay ${pageEffect === 'shadows' ? 'shadows' : ''}`}></div>
+      <div className={`overlay ${pageEffect !== 'no-effect' ? 'shadows' : ''}`}></div>
     </div>
   );
 });

@@ -1,99 +1,74 @@
-# Text to Handwriting (Modern Version)
+# Text to Handwriting Next
 
-A modernized version of the [Text to Handwriting](https://github.com/saurabhdaware/text-to-handwriting) tool, rebuilt with TypeScript, React, and Next.js.
+This is a modern React/TypeScript rewrite of the original Text to Handwriting project by Saurabh Daware.
 
-## What's Different from the Original?
+## Recent Updates
 
-This version preserves all features from the legacy tool while upgrading the codebase with:
-
-- **TypeScript Support**: Full type-safety for reliable code maintenance
-- **React Components**: Modular, reusable components following React best practices
-- **Next.js Framework**: Server-side rendering capabilities and modern build tools
-- **Mobile Optimization**: Enhanced drawing experience on touch devices
-- **Improved Architecture**: Better separation of concerns and file organization
+- **Fixed text input issues**: Resolved overlay issues that were preventing text input in the editor
+- **Restored shadow and scanner effects**: Properly implemented page effects from the legacy version
+- **Improved multi-page generation**: Pages now maintain consistent margins and styles across all pages
+- **Enhanced UI with thumbnails**: Added page thumbnails for easier multi-page document management
+- **Added external text areas**: Optional side and top notes areas that don't interfere with main content
 
 ## Features
 
-- Convert text to realistic handwriting
-- Customize ink color, paper style, and font
-- Upload your own handwriting font
-- Draw diagrams and add them to the page
-- Generate multiple pages for longer text
-- Download output as images or combined PDF
-- Adjust text spacing, margins, and other parameters
+- Convert text to handwritten-style images
+- Multiple handwriting font options
+- Custom handwriting font upload
+- Page effects (shadows, scanner)
+- Multiple page generation
+- Export as images or PDF
+- Drawing capabilities
+- Dark mode support
 
-## Technical Improvements
+## Project Structure
 
-1. **Type-Safe Codebase**: 
-   - Interfaces for data structures and props
-   - Improved error handling and validation
+- `/src/app`: Next.js app pages and layout components
+- `/src/components`: React components for UI elements
+- `/src/utils`: Utility functions for image generation, drawing, and PDF export
+- `/src/types`: TypeScript type definitions
 
-2. **Component-Based Architecture**:
-   - `Paper`: Renders the handwritten content with customizable styling
-   - `CustomizationForm`: Controls for adjusting the appearance
-   - `DrawingCanvas`: Interactive drawing capability
-   - `LoadingSpinner`: Visual feedback during image generation
-
-3. **Enhanced Functionality**:
-   - Multi-page document support
-   - Image manipulation (move, delete)
-   - High-resolution output options
-
-## Getting Started
+## Development
 
 ### Prerequisites
 
-- Node.js 16.x or higher
+- Node.js 18+
 - npm or yarn
 
-### Installation
+### Setup
 
-```bash
-# Install dependencies
-npm install
+1. Clone the repository
+2. Install dependencies:
+   ```
+   npm install
+   ```
+3. Run the development server:
+   ```
+   npm run dev
+   ```
 
-# Start development server
-npm run dev
+## Known Issues and Future Work
 
-# Build for production
-npm run build
-npm start
-```
+- **Paper customization**: Implement more paper styles and backgrounds
+- **Margin customization**: Allow adjusting margin sizes and colors
+- **Font management**: Improve custom font handling and provide more built-in options
+- **Better mobile support**: Enhance responsive design for smaller screens
+- **Performance optimization**: Optimize image generation for large documents
+- **Accessibility improvements**: Enhance keyboard navigation and screen reader support
 
-## Usage
+## Technologies Used
 
-1. Enter or paste text into the input area
-2. Customize appearance using the right panel controls
-3. Click "Generate Image" to create handwritten version
-4. Download individual images or as a combined PDF
-
-## Future Enhancements
-
-- [ ] More paper styles and templates (ruled, graph, etc.)
-- [ ] Line height control for more precise text spacing
-- [ ] Text formatting options (bold, italic, underline)
-- [ ] Custom drawing tools (shapes, highlighter)
-- [ ] User-defined page sizes
-- [ ] Cloud storage for saving and sharing creations
-- [ ] Offline usage capabilities
-- [ ] Document history and versioning
-
-## Known Issues
-
-- The "Add to Paper" functionality for drawings needs further refinement
-- Some fonts may not render exactly as expected due to browser differences
-- Very large documents may cause performance issues during PDF generation
-
-## Contributing
-
-Contributions are welcome! Please feel free to submit a Pull Request.
+- React 18
+- Next.js 13+
+- TypeScript
+- html2canvas for image generation
+- jsPDF for PDF generation
 
 ## License
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+MIT License - See LICENSE file for details
 
-## Acknowledgements
+## Credits
 
-- Original project by [Saurabh Daware](https://github.com/saurabhdaware)
-- [html2canvas](https://html2canvas.hertzen.com/) for HTML to image conversion
-- [jsPDF](https://parall.ax/products/jspdf) for PDF generation
+- Original project by Saurabh Daware
+- Contributors to the original text-to-handwriting project

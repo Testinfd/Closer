@@ -191,9 +191,23 @@ export default function Home() {
     setTopPadding(value);
   };
 
+  const toggleTheme = () => {
+    setIsDark(!isDark);
+  };
+
   return (
     <main>
+      <button
+        onClick={toggleTheme}
+        className="theme-toggle-button"
+        aria-label={isDark ? "Switch to light mode" : "Switch to dark mode"}
+      >
+        {isDark ? '☀️' : '🌙'}
+      </button>
       <h1>Inkwell</h1>
+      <p className="subtitle" style={{ textAlign: 'center', marginTop: '-1rem', marginBottom: '2rem', fontSize: '1.1rem', color: 'var(--font-color-secondary)' }}>
+        Text to Handwriting - Most Advanced and realistic Text to Handwriting tool
+      </p>
       <section className="generate-image-section">
         <br /><br />
         <form id="generate-image-form" onSubmit={(e) => { e.preventDefault(); handleGenerateImages(); }}>
@@ -301,7 +315,7 @@ export default function Home() {
         <div id="output" className="output" style={{ textAlign: 'center' }}>
           Click &quot;Generate Image&quot; Button to generate new image.
         </div>
-        <div style={{ textAlign: 'center', padding: '30px' }}>
+        <div className="output-main-actions" style={{ padding: '30px' }}> {/* Removed textAlign: center, will be handled by flex */ }
           <button className="imp-button" id="download-as-pdf-button" onClick={handleDownloadPDF}>
             Download All Images as PDF
           </button>

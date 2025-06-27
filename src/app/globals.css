@@ -17,6 +17,7 @@ body {
   --accent-color: #e74c3c; /* Red */
   --accent-color-rgb: 231, 76, 60; /* RGB for Red */
   --ink-color: #000f55; /* Keeping original ink color for now, can be adjusted */
+  --font-color-secondary: #5a6a7a; /* Lighter shade for subtitles/secondary text */
   --label-color: #555;
   --field-borders: #bdc3c7; /* Light Silver */
   --primary-button-bg: var(--primary-color);
@@ -33,6 +34,7 @@ body.dark {
   /* Dark Theme */
   --background-primary: #1a1a1a; /* Darker Gray */
   --font-color-primary: #ecf0f1; /* Light Gray */
+  --font-color-secondary: #a0b0c0; /* Lighter gray for subtitles in dark mode */
   --elevation-background: #2c3e50; /* Dark Blue-Gray */
   --link-color: #3498db; /* Bright Blue */
   --primary-color-rgb: 52, 152, 219; /* Ensure this is defined for dark mode too */
@@ -279,6 +281,40 @@ body.dark .github-corner {
   color: var(--accent-color); /* Ensure text remains visible and reinforces action */
   border-color: var(--accent-color);
 }
+
+.theme-toggle-button {
+  position: absolute;
+  top: 30px; /* Adjusted for new body padding */
+  right: 30px; /* Adjusted for new body padding */
+  padding: 8px;
+  font-size: 1.5rem; /* Keep emoji size */
+  background-color: var(--elevation-background);
+  color: var(--font-color-primary);
+  border: 1px solid var(--field-borders);
+  border-radius: 50%; /* Make it circular */
+  width: 48px; /* Explicit width */
+  height: 48px; /* Explicit height */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  transition: background-color 0.2s ease, transform 0.2s ease;
+}
+
+.theme-toggle-button:hover {
+  background-color: var(--field-borders);
+  transform: scale(1.05) translateY(-1px); /* Slightly larger and lift */
+}
+
+body.dark .theme-toggle-button {
+  background-color: var(--elevation-background);
+  border-color: var(--field-borders);
+}
+
+body.dark .theme-toggle-button:hover {
+  background-color: var(--background-primary); /* Darken slightly on hover */
+}
+
 
 .customization-col {
   padding: 0px 30px !important; /* Reduced side padding */
@@ -621,6 +657,42 @@ body {
     text-wrap: balance;
   }
 }
+
+/* Theme Toggle Button - Placed earlier */
+
+/* Output Section */
+.output-image-controls {
+  display: flex;
+  align-items: center;
+  justify-content: center; /* Center the buttons */
+  gap: 10px; /* Add space between buttons */
+  margin-top: 15px; /* Space above the controls */
+  flex-wrap: wrap; /* Allow buttons to wrap on smaller screens */
+}
+
+.output-image-controls button {
+  padding: 8px 15px; /* Slightly smaller padding for these controls */
+  font-size: 0.9rem;
+  min-width: auto; /* Allow buttons to be smaller */
+}
+
+.output-image-controls .close-button {
+  /* .delete-button class is already applied, this can fine-tune */
+  padding: 5px 10px; /* Make the X button a bit smaller */
+  font-size: 1.2rem; /* Make X character larger */
+  line-height: 1;
+}
+
+/* Main action buttons below output */
+.output-main-actions {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 15px; /* Space between PDF and Clear buttons */
+  flex-wrap: wrap;
+  /* padding: 30px is already inline, margin-top can be added if needed, or rely on section padding */
+}
+
 
 /* Output Thumbnails */
 .thumbnail-container {

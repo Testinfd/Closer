@@ -193,7 +193,7 @@ export default function Home() {
 
   return (
     <main>
-      <h1>Text to Handwriting</h1>
+      <h1>Inkwell</h1>
       <section className="generate-image-section">
         <br /><br />
         <form id="generate-image-form" onSubmit={(e) => { e.preventDefault(); handleGenerateImages(); }}>

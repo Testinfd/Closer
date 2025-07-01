@@ -97,7 +97,7 @@ export default function Home() {
   const paperRef = useRef<HTMLDivElement>(null);
   const sideTextRef = useRef<HTMLDivElement>(null);
   const topTextRef = useRef<HTMLDivElement>(null);
-  
+
   useEffect(() => {
     const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
     setIsDark(prefersDark);
@@ -158,7 +158,7 @@ export default function Home() {
     if (!paperContentEl) return;
     
     setIsGenerating(true);
-    
+
     try {
       await generateImages(
         paperEl,
@@ -238,7 +238,7 @@ export default function Home() {
     setIsDark(prev => !prev);
   };
 
-  return (
+    return (
     <main>
       <h1>Convert Text to Handwriting</h1>
       
@@ -248,32 +248,32 @@ export default function Home() {
         <div className="display-flex responsive-flex">
           <div className="page-container">
             <div className="page-container-super shadow">
-              <EnhancedPaper
-                paperRef={paperRef}
-                initialValue={text}
-                onContentChange={handleContentChange}
-                sideText={sideText}
-                onSideTextChange={setSideText}
-                topText={topText}
-                onTopTextChange={setTopText}
-                inkColor={inkColor}
-                paperColor={paperColor}
+      <EnhancedPaper
+        paperRef={paperRef}
+        initialValue={text}
+        onContentChange={handleContentChange}
+        sideText={sideText}
+        onSideTextChange={setSideText}
+        topText={topText}
+        onTopTextChange={setTopText}
+        inkColor={inkColor}
+        paperColor={paperColor}
                 shadowColor="#0005"
-                hasLines={hasLines}
-                hasMargins={hasMargins}
-                pageEffect={pageEffect}
-                fontFamily={fontFamily}
-                fontSize={`${fontSize}pt`}
-                letterSpacing={`${letterSpacing}px`}
-                wordSpacing={`${wordSpacing}px`}
-                topPadding={`${topPadding}px`}
-                randomizeHandwriting={randomizeHandwriting}
-                realisticInkEffects={realisticEffects}
-                paperTextureUrl={getPaperTextureUrl()}
-              />
+        hasLines={hasLines}
+        hasMargins={hasMargins}
+        pageEffect={pageEffect}
+        fontFamily={fontFamily}
+        fontSize={`${fontSize}pt`}
+        letterSpacing={`${letterSpacing}px`}
+        wordSpacing={`${wordSpacing}px`}
+        topPadding={`${topPadding}px`}
+        randomizeHandwriting={randomizeHandwriting}
+        realisticInkEffects={realisticEffects}
+        paperTextureUrl={getPaperTextureUrl()}
+      />
             </div>
-          </div>
-
+              </div>
+              
           <div className="customization-col">
             <CustomizationForm 
               fontFamily={fontFamily}
@@ -305,18 +305,18 @@ export default function Home() {
             
             {/* External Text Toggle Button */}
             <div className="external-text-toggle" style={{marginTop: '20px'}}>
-              <button 
+                <button
                 onClick={handleToggleExternalText}
                 className={showExternalText ? 'imp-button' : 'generate-image-button'}
               >
                 {showExternalText ? 'Hide Side & Top Notes' : 'Show Side & Top Notes'}
-              </button>
+                </button>
             </div>
             
             {/* External Text Editors */}
             {showExternalText && (
               <div className="external-text-container" style={{marginTop: '20px'}}>
-                <fieldset>
+              <fieldset>
                   <legend>Notes Configuration</legend>
                   <p>Add content to the side and top margins. These will appear in the margins when you have margins enabled.</p>
                   <div className="side-text-area">
@@ -335,7 +335,7 @@ export default function Home() {
                         wordSpacing={wordSpacing}
                         className="side-note-preview"
                       />
-                    </div>
+                </div>
                   </div>
                   <div className="top-text-area" style={{marginTop: '15px'}}>
                     <label className="block">Top Notes:</label>
@@ -352,11 +352,11 @@ export default function Home() {
                         letterSpacing={letterSpacing}
                         wordSpacing={wordSpacing}
                         className="top-note-preview"
-                      />
-                    </div>
+                    />
                   </div>
-                </fieldset>
-              </div>
+                </div>
+              </fieldset>
+                  </div>
             )}
             
             <div className="output-container">
@@ -365,7 +365,7 @@ export default function Home() {
                   <button id="delete-all-button" onClick={handleDeleteAll}>Delete All</button>
                   <button id="download-as-pdf-button" onClick={handleDownloadPDF}>Download as PDF</button>
                 </div>
-              </div>
+                  </div>
             </div>
 
             {/* Font upload component */}
@@ -375,9 +375,9 @@ export default function Home() {
       </section>
 
       {drawingCanvasVisible && (
-        <DrawingCanvas 
-          onClose={() => setDrawingCanvasVisible(false)} 
-          onAddToPaper={handleAddToPaper}
+      <DrawingCanvas
+        onClose={() => setDrawingCanvasVisible(false)}
+        onAddToPaper={handleAddToPaper}
           inkColor={inkColor}
           visible={drawingCanvasVisible}
         />

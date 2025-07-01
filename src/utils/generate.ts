@@ -322,14 +322,15 @@ export const generateImages = async (
         sideNoteClone.style.boxSizing = 'border-box';
         leftMarginEl.appendChild(sideNoteClone);
         
-        // Ensure left margin extends full height
+        // Ensure left margin extends full height and intersects with top margin
         if (leftMarginEl instanceof HTMLElement) {
           leftMarginEl.style.position = 'absolute';
           leftMarginEl.style.top = '0';
           leftMarginEl.style.left = '0';
           leftMarginEl.style.bottom = '0';
           leftMarginEl.style.height = '100%';
-          leftMarginEl.style.zIndex = '10';
+          leftMarginEl.style.zIndex = '1';
+          leftMarginEl.style.paddingTop = '55px'; // Space for top margin
         }
       }
     } else if (pageEl.querySelector('.left-margin')) {
@@ -341,7 +342,8 @@ export const generateImages = async (
         leftMarginEl.style.left = '0';
         leftMarginEl.style.bottom = '0';
         leftMarginEl.style.height = '100%';
-        leftMarginEl.style.zIndex = '10';
+        leftMarginEl.style.zIndex = '1';
+        leftMarginEl.style.paddingTop = '55px'; // Space for top margin
         
         // Add an empty element to ensure the margin is visible
         const emptyEl = document.createElement('div');
@@ -358,11 +360,44 @@ export const generateImages = async (
         topNoteClone.style.boxSizing = 'border-box';
         topMarginEl.appendChild(topNoteClone);
         
-        // Ensure top margin is properly positioned
+        // Ensure top margin is properly positioned and covers the full width
         if (topMarginEl instanceof HTMLElement) {
-          topMarginEl.style.marginLeft = '50px';
-          topMarginEl.style.width = 'calc(100% - 50px)';
+          topMarginEl.style.position = 'absolute';
+          topMarginEl.style.top = '0';
+          topMarginEl.style.left = '0';
+          topMarginEl.style.width = '100%';
+          topMarginEl.style.height = '50px';
+          topMarginEl.style.zIndex = '2';
+          topMarginEl.style.paddingLeft = '55px'; // Space for left margin
         }
+      }
+    } else if (pageEl.querySelector('.top-margin')) {
+      // Even if there are no top notes, ensure proper styling
+      const topMarginEl = pageEl.querySelector('.top-margin') as HTMLElement;
+      if (topMarginEl) {
+        topMarginEl.style.position = 'absolute';
+        topMarginEl.style.top = '0';
+        topMarginEl.style.left = '0';
+        topMarginEl.style.width = '100%';
+        topMarginEl.style.height = '50px';
+        topMarginEl.style.zIndex = '2';
+        topMarginEl.style.paddingLeft = '55px'; // Space for left margin
+      }
+    }
+    
+    // Ensure paper content area is properly positioned
+    if (paperContentEl) {
+      paperContentEl.style.position = 'absolute';
+      paperContentEl.style.top = '52px'; // 50px + 2px border
+      paperContentEl.style.left = '52px'; // 50px + 2px border
+      paperContentEl.style.width = 'calc(100% - 52px)';
+      paperContentEl.style.height = 'calc(100% - 52px)';
+      paperContentEl.style.padding = '0';
+      
+      // Ensure lines start from the top
+      if (pageEl.classList.contains('lines')) {
+        paperContentEl.style.backgroundPosition = '0 0';
+        paperContentEl.style.paddingTop = '0';
       }
     }
 

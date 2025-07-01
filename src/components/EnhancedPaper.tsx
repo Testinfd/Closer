@@ -159,8 +159,9 @@ const EnhancedPaper: React.FC<EnhancedPaperProps> = ({
             bottom: 0,
             borderRight: '2px solid var(--accent-color)',
             backgroundColor: '#f9f9f9',
-            zIndex: 10,
+            zIndex: 1,
             padding: '5px',
+            paddingTop: '55px',
             overflow: 'auto'
           }}>
             <RichTextEditor
@@ -180,10 +181,16 @@ const EnhancedPaper: React.FC<EnhancedPaperProps> = ({
         )}
         
         {hasMargins && <div className="top-margin" style={{ 
-          marginLeft: hasMargins ? '50px' : '0',
-          borderBottom: '2px solid var(--accent-color)',
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          width: '100%',
           height: '50px',
-          width: hasMargins ? 'calc(100% - 50px)' : '100%'
+          borderBottom: '2px solid var(--accent-color)',
+          backgroundColor: '#f9f9f9',
+          zIndex: 2,
+          paddingLeft: '55px',
+          boxSizing: 'border-box'
         }}>
           <RichTextEditor
             value={htmlToSlateValue(topText)}
@@ -201,13 +208,20 @@ const EnhancedPaper: React.FC<EnhancedPaperProps> = ({
         </div>}
         
         <div className="paper-content" style={{ 
-          marginLeft: hasMargins ? '50px' : '0',
-          marginTop: hasMargins ? '50px' : '0',
-          width: hasMargins ? 'calc(100% - 50px)' : '100%',
-          height: hasMargins ? 'calc(100% - 50px)' : '100%',
-          padding: '10px'
+          position: 'absolute',
+          top: hasMargins ? '52px' : '0',
+          left: hasMargins ? '52px' : '0',
+          width: hasMargins ? 'calc(100% - 52px)' : '100%',
+          height: hasMargins ? 'calc(100% - 52px)' : '100%',
+          padding: '0',
+          boxSizing: 'border-box'
         }}>
-          <div ref={contentRef} className="editor-wrapper" style={{ width: '100%', position: 'relative' }}>
+          <div ref={contentRef} className="editor-wrapper" style={{ 
+            width: '100%', 
+            height: '100%',
+            position: 'relative',
+            padding: '5px'
+          }}>
             <RichTextEditor
               value={slateValue}
               onChange={handleContentChange}

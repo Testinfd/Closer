@@ -246,6 +246,34 @@ export default function Home() {
 
       <section className="generate-image-section">
         <div className="display-flex responsive-flex">
+          <div className="page-container">
+            <div className="page-container-super shadow">
+              <EnhancedPaper
+                paperRef={paperRef}
+                initialValue={text}
+                onContentChange={handleContentChange}
+                sideText={sideText}
+                onSideTextChange={setSideText}
+                topText={topText}
+                onTopTextChange={setTopText}
+                inkColor={inkColor}
+                paperColor={paperColor}
+                shadowColor="#0005"
+                hasLines={hasLines}
+                hasMargins={hasMargins}
+                pageEffect={pageEffect}
+                fontFamily={fontFamily}
+                fontSize={`${fontSize}pt`}
+                letterSpacing={`${letterSpacing}px`}
+                wordSpacing={`${wordSpacing}px`}
+                topPadding={`${topPadding}px`}
+                randomizeHandwriting={randomizeHandwriting}
+                realisticInkEffects={realisticEffects}
+                paperTextureUrl={getPaperTextureUrl()}
+              />
+            </div>
+          </div>
+
           <div className="customization-col">
             <CustomizationForm 
               fontFamily={fontFamily}
@@ -342,34 +370,6 @@ export default function Home() {
 
             {/* Font upload component */}
             <FontUploader onFontLoaded={(fontName) => setFontFamily(fontName)} />
-          </div>
-          
-          <div className="page-container">
-            <div className="page-container-super shadow">
-              <EnhancedPaper
-                paperRef={paperRef}
-                initialValue={text}
-                onContentChange={handleContentChange}
-                sideText={sideText}
-                onSideTextChange={setSideText}
-                topText={topText}
-                onTopTextChange={setTopText}
-                inkColor={inkColor}
-                paperColor={paperColor}
-                shadowColor="#0005"
-                hasLines={hasLines}
-                hasMargins={hasMargins}
-                pageEffect={pageEffect}
-                fontFamily={fontFamily}
-                fontSize={`${fontSize}pt`}
-                letterSpacing={`${letterSpacing}px`}
-                wordSpacing={`${wordSpacing}px`}
-                topPadding={`${topPadding}px`}
-                randomizeHandwriting={randomizeHandwriting}
-                realisticInkEffects={realisticEffects}
-                paperTextureUrl={getPaperTextureUrl()}
-              />
-            </div>
           </div>
         </div>
       </section>

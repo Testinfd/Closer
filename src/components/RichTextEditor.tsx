@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useCallback, useMemo, useState, useEffect } from 'react';
-import { createEditor, BaseEditor, Descendant } from 'slate';
+import { createEditor, BaseEditor, Descendant, Node, NodeEntry } from 'slate';
 import { Slate, Editable, withReact, ReactEditor } from 'slate-react';
 import { withHistory } from 'slate-history';
 import katex from 'katex';
@@ -73,6 +73,12 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
   // Set mounted state after component mounts to avoid hydration mismatch
   useEffect(() => {
     setMounted(true);
+  }, []);
+
+  // Error handling for DOM operations
+  const handleDOMError = useCallback(() => {
+    // Suppress errors
+    return true;
   }, []);
 
   const renderElement = useCallback((props: any) => {
@@ -198,6 +204,7 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
           <Editable
             renderElement={renderElement}
             renderLeaf={renderLeaf}
+            onError={handleDOMError}
             style={{
               color: inkColor,
               fontFamily,

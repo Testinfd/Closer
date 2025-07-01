@@ -168,12 +168,14 @@ const EnhancedPaper: React.FC<EnhancedPaperProps> = ({
         {hasMargins && (
           <div className="left-margin" style={{
             minWidth: '50px',
+            width: '50px',
             borderRight: '2px solid var(--accent-color)',
             backgroundColor: '#f9f9f9',
             flexShrink: 0,
             position: 'relative',
             display: 'block',
             height: '100%',
+            minHeight: '200px',
             padding: '5px',
             overflow: 'auto'
           }}>

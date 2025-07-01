@@ -321,6 +321,32 @@ export const generateImages = async (
         sideNoteClone.style.padding = '10px';
         sideNoteClone.style.boxSizing = 'border-box';
         leftMarginEl.appendChild(sideNoteClone);
+        
+        // Ensure left margin extends full height
+        if (leftMarginEl instanceof HTMLElement) {
+          leftMarginEl.style.position = 'absolute';
+          leftMarginEl.style.top = '0';
+          leftMarginEl.style.left = '0';
+          leftMarginEl.style.bottom = '0';
+          leftMarginEl.style.height = '100%';
+          leftMarginEl.style.zIndex = '10';
+        }
+      }
+    } else if (pageEl.querySelector('.left-margin')) {
+      // Even if there are no side notes, ensure the left margin is visible and full height
+      const leftMarginEl = pageEl.querySelector('.left-margin') as HTMLElement;
+      if (leftMarginEl) {
+        leftMarginEl.style.position = 'absolute';
+        leftMarginEl.style.top = '0';
+        leftMarginEl.style.left = '0';
+        leftMarginEl.style.bottom = '0';
+        leftMarginEl.style.height = '100%';
+        leftMarginEl.style.zIndex = '10';
+        
+        // Add an empty element to ensure the margin is visible
+        const emptyEl = document.createElement('div');
+        emptyEl.style.height = '100%';
+        leftMarginEl.appendChild(emptyEl);
       }
     }
 
@@ -331,6 +357,12 @@ export const generateImages = async (
         topNoteClone.style.padding = '10px';
         topNoteClone.style.boxSizing = 'border-box';
         topMarginEl.appendChild(topNoteClone);
+        
+        // Ensure top margin is properly positioned
+        if (topMarginEl instanceof HTMLElement) {
+          topMarginEl.style.marginLeft = '50px';
+          topMarginEl.style.width = 'calc(100% - 50px)';
+        }
       }
     }
 

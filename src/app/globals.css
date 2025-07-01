@@ -321,10 +321,9 @@ body.dark .theme-toggle-button:hover {
 }
 
 .left-margin-and-content {
-  display: flex;
-  width: 100%;
   position: relative;
-  min-height: calc(100% - 50px); /* Account for top margin */
+  width: 100%;
+  height: calc(100% - 50px); /* Account for top margin */
 }
 
 .sponsor-name-section {
@@ -342,65 +341,84 @@ body.dark .theme-toggle-button:hover {
 }
 
 .page-a {
-  width: 400px;
-  height: calc(11.7 * 400px / 8.3); /* A4 Ratio */
-  background: #fff;
-  border: 1px solid var(--elevation-background);
-  font-size: 10pt;
   position: relative;
-  top: 0px;
-  font-family: var(--handwriting-font);
-  color: var(--ink-color);
-  line-height: 1.5em;
-  overflow-y: auto;
-  scrollbar-color: transparent;
-  scrollbar-width: thin;
+  box-sizing: border-box;
+  margin: 0 auto;
+  background-color: #fff;
+  box-shadow: 0 0 5px 0 rgba(0, 0, 0, 0.5);
+  width: 400px;
+  height: 566px;
+  overflow: hidden;
 }
+
+.paper-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
 .paper-content {
   position: relative;
-  flex: 1;
-  overflow: visible;
+  overflow-y: auto;
+  box-sizing: border-box;
 }
+
 .page-a.lines .paper-content {
   background-image: linear-gradient(#999 0.05em, transparent 0.05em);
   background-size: 100% 1.5em;
-}
-
-.margined .paper-content {
-  padding: 5px;
-  margin: 0px;
 }
 
 .left-margin,
 .top-margin {
   display: block;
   background-color: #f9f9f9;
-}
-
-.margined .top-margin {
-  height: 50px;
-  border-bottom: 2px solid var(--accent-color);
-  width: 100%;
-  display: block;
-  overflow-y: auto;
-  padding: 5px;
+  box-sizing: border-box;
+  overflow: hidden;
 }
 
 .margined .left-margin {
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
   width: 50px;
-  min-height: 100%;
-  display: block;
   border-right: 2px solid var(--accent-color);
-  overflow-x: hidden;
-  padding-top: 5px;
-  text-align: left;
   box-sizing: border-box;
+  z-index: 10;
 }
 
 .margined .left-margin:empty::after {
   content: " ";
   display: block;
-  min-height: 100%;
+  height: 100%;
+}
+
+.margined .top-margin {
+  height: 50px;
+  border-bottom: 2px solid var(--accent-color);
+  box-sizing: border-box;
+  margin-left: 50px;
+}
+
+/* For multi-page support */
+.output-image .left-margin,
+.thumbnail-container .left-margin {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100% !important;
+  border-right: 2px solid var(--accent-color);
+}
+
+.output-image .top-margin,
+.thumbnail-container .top-margin {
+  margin-left: 50px;
+  width: calc(100% - 50px) !important;
+}
+
+.margined .paper-content {
+  padding: 5px;
+  margin: 0px;
 }
 
 .overlay {

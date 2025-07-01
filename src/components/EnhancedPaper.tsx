@@ -149,20 +149,49 @@ const EnhancedPaper: React.FC<EnhancedPaperProps> = ({
 
   return (
     <div ref={paperRef} className={getPaperClasses()}>
-      <div className="paper-container" style={{ position: 'relative', width: '100%', height: '100%' }}>
+      {hasMargins && <div className="top-margin" style={{
+        width: '100%',
+        height: '50px',
+        borderBottom: '2px solid var(--accent-color)',
+        backgroundColor: '#f9f9f9',
+        display: 'block',
+        padding: '5px',
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        zIndex: 2,
+        textAlign: 'center'
+      }}>
+        <RichTextEditor
+          value={htmlToSlateValue(topText)}
+          onChange={(newValue) => {
+            const html = slateValueToHtml(newValue);
+            onTopTextChange(html);
+          }}
+          inkColor={inkColor}
+          fontFamily={fontFamily}
+          fontSize={fontSize}
+          letterSpacing={letterSpacing}
+          wordSpacing={wordSpacing}
+          className="top-note-editor"
+        />
+      </div>}
+      <div className="display-flex left-margin-and-content">
         {hasMargins && (
           <div className="left-margin" style={{
             width: '50px',
-            position: 'absolute',
-            left: 0,
-            top: 0,
-            bottom: 0,
             borderRight: '2px solid var(--accent-color)',
             backgroundColor: '#f9f9f9',
-            zIndex: 1,
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            bottom: 0,
             padding: '5px',
             paddingTop: '55px',
-            overflow: 'auto'
+            overflow: 'auto',
+            zIndex: 2,
+            boxSizing: 'border-box'
           }}>
             <RichTextEditor
               value={htmlToSlateValue(sideText)}
@@ -179,49 +208,18 @@ const EnhancedPaper: React.FC<EnhancedPaperProps> = ({
             />
           </div>
         )}
-        
-        {hasMargins && <div className="top-margin" style={{ 
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          width: '100%',
-          height: '50px',
-          borderBottom: '2px solid var(--accent-color)',
-          backgroundColor: '#f9f9f9',
-          zIndex: 2,
-          paddingLeft: '55px',
-          boxSizing: 'border-box'
-        }}>
-          <RichTextEditor
-            value={htmlToSlateValue(topText)}
-            onChange={(newValue) => {
-              const html = slateValueToHtml(newValue);
-              onTopTextChange(html);
-            }}
-            inkColor={inkColor}
-            fontFamily={fontFamily}
-            fontSize={fontSize}
-            letterSpacing={letterSpacing}
-            wordSpacing={wordSpacing}
-            className="top-note-editor"
-          />
-        </div>}
-        
-        <div className="paper-content" style={{ 
-          position: 'absolute',
-          top: hasMargins ? '52px' : '0',
-          left: hasMargins ? '52px' : '0',
-          width: hasMargins ? 'calc(100% - 52px)' : '100%',
-          height: hasMargins ? 'calc(100% - 52px)' : '100%',
-          padding: '0',
-          boxSizing: 'border-box'
-        }}>
-          <div ref={contentRef} className="editor-wrapper" style={{ 
-            width: '100%', 
-            height: '100%',
-            position: 'relative',
-            padding: '5px'
-          }}>
+        <div 
+          ref={contentRef} 
+          className="paper-content" 
+          style={{
+            flex: 1,
+            marginLeft: hasMargins ? '50px' : '0',
+            marginTop: hasMargins ? '50px' : '0',
+            width: hasMargins ? 'calc(100% - 50px)' : '100%',
+            minHeight: '100%'
+          }}
+        >
+          <div className="editor-wrapper" style={{ width: '100%', position: 'relative' }}>
             <RichTextEditor
               value={slateValue}
               onChange={handleContentChange}

@@ -118,7 +118,8 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
       padding: '0',
       position: 'relative',
       width: '100%',
-      height: isSideNoteEditor ? '100%' : 'auto'
+      height: isSideNoteEditor ? '100%' : 'auto',
+      textAlign: isTopNoteEditor ? 'center' : 'left'
     }}>
       <style jsx global>{`
         @media print {
@@ -137,6 +138,13 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
         .side-note-editor {
           writing-mode: horizontal-tb;
           text-orientation: mixed;
+          min-height: 100%;
+        }
+        .top-note-editor {
+          text-align: center;
+        }
+        .top-note-editor [data-slate-editor=true] {
+          text-align: center;
         }
       `}</style>
       <div className="editor-toolbar" style={{ marginBottom: '10px' }}>
@@ -216,7 +224,7 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
               border: 'none',
               borderRadius: '0',
               lineHeight: '1.5',
-              textAlign: 'left',
+              textAlign: isTopNoteEditor ? 'center' : 'left',
               width: '100%',
               height: isSideNoteEditor ? '100%' : 'auto',
               boxSizing: 'border-box',
@@ -225,7 +233,7 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
               verticalAlign: 'top',
               margin: '0',
               overflow: 'visible',
-              writingMode: isSideNoteEditor ? 'horizontal-tb' : 'horizontal-tb',
+              writingMode: 'horizontal-tb',
               textOrientation: isSideNoteEditor ? 'mixed' : 'inherit',
             }}
           />

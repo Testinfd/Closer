@@ -320,35 +320,14 @@ export const generateImages = async (
         sideNoteClone = sideNotes.cloneNode(true) as HTMLElement;
         sideNoteClone.style.padding = '10px';
         sideNoteClone.style.boxSizing = 'border-box';
-        leftMarginEl.appendChild(sideNoteClone);
-        
-        // Ensure left margin extends full height and intersects with top margin
-        if (leftMarginEl instanceof HTMLElement) {
-          leftMarginEl.style.position = 'absolute';
-          leftMarginEl.style.top = '0';
-          leftMarginEl.style.left = '0';
-          leftMarginEl.style.bottom = '0';
-          leftMarginEl.style.height = '100%';
-          leftMarginEl.style.zIndex = '1';
-          leftMarginEl.style.paddingTop = '55px'; // Space for top margin
+        sideNoteClone.style.width = '100%';
+        sideNoteClone.style.height = '100%';
+        sideNoteClone.style.overflow = 'hidden';
+        // Clear any children first to avoid duplicates
+        while (leftMarginEl.firstChild) {
+          leftMarginEl.removeChild(leftMarginEl.firstChild);
         }
-      }
-    } else if (pageEl.querySelector('.left-margin')) {
-      // Even if there are no side notes, ensure the left margin is visible and full height
-      const leftMarginEl = pageEl.querySelector('.left-margin') as HTMLElement;
-      if (leftMarginEl) {
-        leftMarginEl.style.position = 'absolute';
-        leftMarginEl.style.top = '0';
-        leftMarginEl.style.left = '0';
-        leftMarginEl.style.bottom = '0';
-        leftMarginEl.style.height = '100%';
-        leftMarginEl.style.zIndex = '1';
-        leftMarginEl.style.paddingTop = '55px'; // Space for top margin
-        
-        // Add an empty element to ensure the margin is visible
-        const emptyEl = document.createElement('div');
-        emptyEl.style.height = '100%';
-        leftMarginEl.appendChild(emptyEl);
+        leftMarginEl.appendChild(sideNoteClone);
       }
     }
 
@@ -358,46 +337,13 @@ export const generateImages = async (
         topNoteClone = topNotes.cloneNode(true) as HTMLElement;
         topNoteClone.style.padding = '10px';
         topNoteClone.style.boxSizing = 'border-box';
-        topMarginEl.appendChild(topNoteClone);
-        
-        // Ensure top margin is properly positioned and covers the full width
-        if (topMarginEl instanceof HTMLElement) {
-          topMarginEl.style.position = 'absolute';
-          topMarginEl.style.top = '0';
-          topMarginEl.style.left = '0';
-          topMarginEl.style.width = '100%';
-          topMarginEl.style.height = '50px';
-          topMarginEl.style.zIndex = '2';
-          topMarginEl.style.paddingLeft = '55px'; // Space for left margin
+        topNoteClone.style.width = '100%';
+        topNoteClone.style.textAlign = 'center';
+        // Clear any children first to avoid duplicates
+        while (topMarginEl.firstChild) {
+          topMarginEl.removeChild(topMarginEl.firstChild);
         }
-      }
-    } else if (pageEl.querySelector('.top-margin')) {
-      // Even if there are no top notes, ensure proper styling
-      const topMarginEl = pageEl.querySelector('.top-margin') as HTMLElement;
-      if (topMarginEl) {
-        topMarginEl.style.position = 'absolute';
-        topMarginEl.style.top = '0';
-        topMarginEl.style.left = '0';
-        topMarginEl.style.width = '100%';
-        topMarginEl.style.height = '50px';
-        topMarginEl.style.zIndex = '2';
-        topMarginEl.style.paddingLeft = '55px'; // Space for left margin
-      }
-    }
-    
-    // Ensure paper content area is properly positioned
-    if (paperContentEl) {
-      paperContentEl.style.position = 'absolute';
-      paperContentEl.style.top = '52px'; // 50px + 2px border
-      paperContentEl.style.left = '52px'; // 50px + 2px border
-      paperContentEl.style.width = 'calc(100% - 52px)';
-      paperContentEl.style.height = 'calc(100% - 52px)';
-      paperContentEl.style.padding = '0';
-      
-      // Ensure lines start from the top
-      if (pageEl.classList.contains('lines')) {
-        paperContentEl.style.backgroundPosition = '0 0';
-        paperContentEl.style.paddingTop = '0';
+        topMarginEl.appendChild(topNoteClone);
       }
     }
 
@@ -414,13 +360,28 @@ export const generateImages = async (
     if (totalPages > 1) {
       // For multiple pages
       const initialPaperContent = paperContentEl.innerHTML;
-      // ... (multi-page logic remains the same)
+      
+      // Store margin elements for later restoration
+      const leftMarginEl = pageEl.querySelector('.left-margin');
+      const topMarginEl = pageEl.querySelector('.top-margin');
+      let leftMarginContent = leftMarginEl ? leftMarginEl.innerHTML : '';
+      let topMarginContent = topMarginEl ? topMarginEl.innerHTML : '';
+      
+      // Process each page
       for (let i = 0; i < totalPages; i++) {
-        // ...
+        // Apply proper styles for multi-page margins
+        if (leftMarginEl) leftMarginEl.innerHTML = leftMarginContent;
+        if (topMarginEl) topMarginEl.innerHTML = topMarginContent;
+        
+        // Generate the canvas
         const canvas = await convertDIVToImage(pageEl, resolution, pageEffect);
         outputImages.push(canvas);
       }
+      
+      // Restore content
       paperContentEl.innerHTML = initialPaperContent;
+      if (leftMarginEl) leftMarginEl.innerHTML = leftMarginContent;
+      if (topMarginEl) topMarginEl.innerHTML = topMarginContent;
     } else {
       // Single image
       const canvas = await convertDIVToImage(pageEl, resolution, pageEffect);

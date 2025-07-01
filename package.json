@@ -11,13 +11,18 @@
   "dependencies": {
     "html2canvas": "^1.4.1",
     "jspdf": "^3.0.1",
+    "katex": "^0.16.22",
     "next": "15.3.4",
     "react": "^19.0.0",
-    "react-dom": "^19.0.0"
+    "react-dom": "^19.0.0",
+    "slate": "^0.117.2",
+    "slate-history": "^0.113.1",
+    "slate-react": "^0.117.3"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
     "@tailwindcss/postcss": "^4",
+    "@types/katex": "^0.16.7",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",

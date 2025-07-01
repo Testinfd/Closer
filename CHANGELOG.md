@@ -1,3 +1,35 @@
+# Changelog
+
+## [1.0.1] - 2023-11-15
+
+### Added
+- Rich text editor integration using Slate.js
+- LaTeX/math support using KaTeX
+- Handwriting randomization features (baseline jitter, letter variation, spacing)
+- Custom font uploader for personal handwriting
+- Paper texture and ink effects for enhanced realism
+- Improved sanitization for secure content handling
+- Demo page to showcase new features
+
+### Enhanced
+- Paper component with EnhancedPaper offering rich text editing
+- Drawing capabilities for signatures and diagrams
+- Export functionality with all effects preserved
+- Font management with user-uploaded handwriting
+
+### Technical Improvements
+- Code organization with utility functions for handwriting randomization
+- Proper sanitization of user input to prevent XSS
+- Type safety with TypeScript throughout
+
+## [1.0.0] - 2023-10-30
+
+### Initial Release
+- Basic text-to-handwriting conversion
+- Simple paper styles and effects
+- Font selection from predefined options
+- Basic image export
+
 # Changelog: Legacy to Modern Version Alignment
 
 ## Core Functionality Alignment

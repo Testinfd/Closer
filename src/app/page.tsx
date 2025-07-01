@@ -1,12 +1,18 @@
 'use client';
 
 import React, { useState, useRef, useEffect } from 'react';
-import Paper from '../components/Paper';
+import EnhancedPaper from '../components/EnhancedPaper';
 import CustomizationForm from '../components/CustomizationForm';
 import DrawingCanvas from '../components/DrawingCanvas';
 import LoadingSpinner from '../components/LoadingSpinner';
+import FontUploader from '../components/FontUploader';
 import { generateImages, downloadAsPDF, deleteAllImages } from '../utils/generate';
+import { sanitizeRichTextContent } from '../utils/sanitize';
 import { PaperSizes } from '../types';
+import 'katex/dist/katex.min.css';
+import { Descendant } from 'slate';
+import RichTextEditor from '../components/RichTextEditor';
+import { slateValueToHtml, htmlToSlateValue } from '../utils/slate-serializer';
 
 const PAPER_SIZES: PaperSizes = {
   A4: { width: 210, height: 297 },
@@ -43,6 +49,14 @@ const PAGE_EFFECTS = [
   { value: "no-effect", label: "No Effect" }
 ];
 
+// Paper texture URLs
+const PAPER_TEXTURES = [
+  { value: "", label: "None" },
+  { value: "/paper-textures/basic.jpg", label: "Basic Paper" },
+  { value: "/paper-textures/recycled.jpg", label: "Recycled Paper" },
+  { value: "/paper-textures/notebook.jpg", label: "Notebook Paper" }
+];
+
 export default function Home() {
   // Paper Content State
   const [text, setText] = useState<string>('Lorem ipsum dolor sit amet, consectetur adipiscing elit. Ut rhoncus dui eget tortor feugiat iaculis. Morbi et dolor in felis viverra efficitur. Integer id laoreet arcu. Mauris turpis nibh, scelerisque sed tristique non, hendrerit in erat. Duis interdum nisl risus, ac ultrices ipsum auctor at.');
@@ -70,13 +84,20 @@ export default function Home() {
   
   const [isGenerating, setIsGenerating] = useState<boolean>(false);
   const [pageEffect, setPageEffect] = useState<string>('shadows');
-  const [resolution, setResolution] = useState<number>(2);
+  const [resolution, setResolution] = useState<string>('2');
   const [paperSize, setPaperSize] = useState<string>('A4');
+  
+  // New features state
+  const [randomizeHandwriting, setRandomizeHandwriting] = useState<boolean>(true);
+  const [realisticEffects, setRealisticEffects] = useState<boolean>(true);
+  const [selectedPaperTexture, setSelectedPaperTexture] = useState<string>("");
+  const [customPaperTexture, setCustomPaperTexture] = useState<string | null>(null);
   
   // Refs
   const paperRef = useRef<HTMLDivElement>(null);
+  const sideTextRef = useRef<HTMLDivElement>(null);
+  const topTextRef = useRef<HTMLDivElement>(null);
   
-
   useEffect(() => {
     const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
     setIsDark(prefersDark);
@@ -102,6 +123,32 @@ export default function Home() {
     }
   }, [paperSize, paperRef]);
 
+  const handlePaperTextureUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      if (!e.target?.result) return;
+      setCustomPaperTexture(e.target.result as string);
+      setSelectedPaperTexture('custom');
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const getPaperTextureUrl = (): string | undefined => {
+    if (selectedPaperTexture === 'custom' && customPaperTexture) {
+      return customPaperTexture;
+    } else if (selectedPaperTexture) {
+      return selectedPaperTexture;
+    }
+    return undefined;
+  };
+
+  const handleToggleExternalText = () => {
+    setShowExternalText(prev => !prev);
+  };
+
   const handleGenerateImages = async () => {
     const paperEl = paperRef.current;
     const outputContainer = document.getElementById('output');
@@ -116,7 +163,7 @@ export default function Home() {
       await generateImages(
         paperEl,
         paperContentEl,
-        resolution,
+        parseFloat(resolution),
         pageEffect,
         outputContainer,
         fontFamily,
@@ -127,8 +174,6 @@ export default function Home() {
         paperColor,
         inkColor
       );
-      
-      
     } catch (error) {
       console.error('Error generating images:', error);
     } finally {
@@ -141,7 +186,6 @@ export default function Home() {
     if (!outputContainer) return;
     
     deleteAllImages(outputContainer);
-    
   };
 
   const handleDownloadPDF = () => {
@@ -150,14 +194,13 @@ export default function Home() {
   };
 
   const handleAddToPaper = (dataUrl: string) => {
-    const paperContentEl = paperRef.current?.querySelector('.paper-content');
-    if (paperContentEl) {
-      const img = document.createElement('img');
-      img.src = dataUrl;
-      img.style.width = '100%';
-      paperContentEl.prepend(img);
-    }
+    const imgTag = `<img src="${dataUrl}" style="max-width: 100%;" />`;
+    setText(prev => prev + imgTag);
     setDrawingCanvasVisible(false);
+  };
+
+  const handleContentChange = (newHtml: string) => {
+    setText(sanitizeRichTextContent(newHtml, true));
   };
 
   const handleFontSizeChange = (value: string) => {
@@ -172,7 +215,7 @@ export default function Home() {
   const handleLetterSpacingChange = (value: string) => {
     const numValue = parseInt(value, 10);
     if (numValue > 40) {
-      alert('Letter Spacing is too big, try a number up to 40');
+      alert('Letter-spacing is too big, try up to 40');
       return;
     }
     setLetterSpacing(value);
@@ -181,7 +224,7 @@ export default function Home() {
   const handleWordSpacingChange = (value: string) => {
     const numValue = parseInt(value, 10);
     if (numValue > 100) {
-      alert('Word Spacing is too big, try a number up to hundred');
+      alert('Word-spacing is too big, try up to 100');
       return;
     }
     setWordSpacing(value);
@@ -192,94 +235,19 @@ export default function Home() {
   };
 
   const toggleTheme = () => {
-    setIsDark(!isDark);
+    setIsDark(prev => !prev);
   };
 
   return (
     <main>
-      <button
-        onClick={toggleTheme}
-        className="theme-toggle-button"
-        aria-label={isDark ? "Switch to light mode" : "Switch to dark mode"}
-      >
-        {isDark ? '☀️' : '🌙'}
-      </button>
-      <h1>Inkwell</h1>
-      <p className="subtitle" style={{ textAlign: 'center', marginTop: '-1rem', marginBottom: '2rem', fontSize: '1.1rem', color: 'var(--font-color-secondary)' }}>
-        Text to Handwriting - Most Advanced and realistic Text to Handwriting tool
-      </p>
+      <h1>Convert Text to Handwriting</h1>
+      
+      {isGenerating && <LoadingSpinner />}
+
       <section className="generate-image-section">
-        <br /><br />
-        <form id="generate-image-form" onSubmit={(e) => { e.preventDefault(); handleGenerateImages(); }}>
-          <div className="display-flex output-grid responsive-flex">
-            <div className="flex-1 page-container-super">
-              <div>
-                <h2 style={{ marginTop: '0px' }}>Input</h2>
-                <label className="block" htmlFor="note">Type/Paste text here</label>
-              </div>
-              
-              {/* External Text Areas Toggle */}
-              <div className="external-text-toggle">
-                <button 
-                  type="button" 
-                  className="imp-button"
-                  onClick={() => setShowExternalText(!showExternalText)}
-                >
-                  {showExternalText ? 'Hide' : 'Show'} External Notes
-                </button>
-              </div>
-              
-              {showExternalText && (
-                <div className="external-text-container">
-                  <div className="side-text-area" 
-                    contentEditable 
-                    suppressHydrationWarning
-                    onInput={(e) => setSideText(e.currentTarget.innerHTML)}
-                    dangerouslySetInnerHTML={{ __html: sideText }}
-                  ></div>
-                  <div className="top-text-area" 
-                    contentEditable 
-                    suppressHydrationWarning
-                    onInput={(e) => setTopText(e.currentTarget.innerHTML)}
-                    dangerouslySetInnerHTML={{ __html: topText }}
-                  ></div>
-                </div>
-              )}
-
-              <div className="flex-1 page-container">
-                <Paper
-                  ref={paperRef}
-                  html={text}
-                  onContentChange={setText}
-                  inkColor={inkColor}
-                  paperColor={paperColor}
-                  shadowColor={isDark ? 'rgba(255, 255, 255, 0.2)' : 'rgba(0, 0, 0, 0.2)'}
-                  hasLines={hasLines}
-                  hasMargins={hasMargins}
-                  pageEffect={pageEffect}
-                  fontFamily={fontFamily}
-                  fontSize={`${fontSize}pt`}
-                  letterSpacing={`${letterSpacing}px`}
-                  wordSpacing={`${wordSpacing}px`}
-                  topPadding={`${topPadding}px`}
-                />
-                <br />
-              </div>
-
-              <div>
-                <button
-                  id="draw-diagram-button"
-                  type="button"
-                  style={{ fontSize: '0.9rem', marginTop: '5px' }}
-                  className="draw-button"
-                  onClick={() => setDrawingCanvasVisible(true)}
-                >
-                  Draw <small>(Beta)</small>
-                </button>
-              </div>
-            </div>
-
-            <CustomizationForm
+        <div className="display-flex responsive-flex">
+          <div className="customization-col">
+            <CustomizationForm 
               fontFamily={fontFamily}
               setFontFamily={setFontFamily}
               fontSize={fontSize}
@@ -299,41 +267,139 @@ export default function Home() {
               setHasMargins={setHasMargins}
               pageEffect={pageEffect}
               setPageEffect={setPageEffect}
-              resolution={resolution.toString()}
-              setResolution={(res) => setResolution(parseInt(res, 10))}
+              resolution={resolution}
+              setResolution={setResolution}
               paperSize={paperSize}
               setPaperSize={setPaperSize}
               handwritingFonts={HANDWRITING_FONTS}
               pageEffects={PAGE_EFFECTS}
             />
+            
+            {/* External Text Toggle Button */}
+            <div className="external-text-toggle" style={{marginTop: '20px'}}>
+              <button 
+                onClick={handleToggleExternalText}
+                className={showExternalText ? 'imp-button' : 'generate-image-button'}
+              >
+                {showExternalText ? 'Hide Side & Top Notes' : 'Show Side & Top Notes'}
+              </button>
+            </div>
+            
+            {/* External Text Editors */}
+            {showExternalText && (
+              <div className="external-text-container" style={{marginTop: '20px'}}>
+                <fieldset>
+                  <legend>Notes Configuration</legend>
+                  <p>Add content to the side and top margins. These will appear in the margins when you have margins enabled.</p>
+                  <div className="side-text-area">
+                    <label className="block">Side Notes:</label>
+                    <div ref={sideTextRef} style={{minHeight: '100px', border: '1px solid #ccc', padding: '8px'}}>
+                      <RichTextEditor
+                        value={htmlToSlateValue(sideText)}
+                        onChange={(newValue) => {
+                          const html = slateValueToHtml(newValue);
+                          setSideText(html);
+                        }}
+                        inkColor={inkColor}
+                        fontFamily={fontFamily}
+                        fontSize={fontSize}
+                        letterSpacing={letterSpacing}
+                        wordSpacing={wordSpacing}
+                        className="side-note-preview"
+                      />
+                    </div>
+                  </div>
+                  <div className="top-text-area" style={{marginTop: '15px'}}>
+                    <label className="block">Top Notes:</label>
+                    <div ref={topTextRef} style={{minHeight: '100px', border: '1px solid #ccc', padding: '8px'}}>
+                      <RichTextEditor
+                        value={htmlToSlateValue(topText)}
+                        onChange={(newValue) => {
+                          const html = slateValueToHtml(newValue);
+                          setTopText(html);
+                        }}
+                        inkColor={inkColor}
+                        fontFamily={fontFamily}
+                        fontSize={fontSize}
+                        letterSpacing={letterSpacing}
+                        wordSpacing={wordSpacing}
+                        className="top-note-preview"
+                      />
+                    </div>
+                  </div>
+                </fieldset>
+              </div>
+            )}
+            
+            <div className="output-container">
+              <div id="output" className="output">
+                <div className="output-image-controls" style={{display: 'none'}}>
+                  <button id="delete-all-button" onClick={handleDeleteAll}>Delete All</button>
+                  <button id="download-as-pdf-button" onClick={handleDownloadPDF}>Download as PDF</button>
+                </div>
+              </div>
+            </div>
+
+            {/* Font upload component */}
+            <FontUploader onFontLoaded={(fontName) => setFontFamily(fontName)} />
           </div>
-        </form>
+          
+          <div className="page-container">
+            <div className="page-container-super shadow">
+              <EnhancedPaper
+                paperRef={paperRef}
+                initialValue={text}
+                onContentChange={handleContentChange}
+                sideText={sideText}
+                onSideTextChange={setSideText}
+                topText={topText}
+                onTopTextChange={setTopText}
+                inkColor={inkColor}
+                paperColor={paperColor}
+                shadowColor="#0005"
+                hasLines={hasLines}
+                hasMargins={hasMargins}
+                pageEffect={pageEffect}
+                fontFamily={fontFamily}
+                fontSize={`${fontSize}pt`}
+                letterSpacing={`${letterSpacing}px`}
+                wordSpacing={`${wordSpacing}px`}
+                topPadding={`${topPadding}px`}
+                randomizeHandwriting={randomizeHandwriting}
+                realisticInkEffects={realisticEffects}
+                paperTextureUrl={getPaperTextureUrl()}
+              />
+            </div>
+          </div>
+        </div>
       </section>
 
-      <section>
-        <h2 id="output-header">Output</h2>
-        <div id="output" className="output" style={{ textAlign: 'center' }}>
-          Click &quot;Generate Image&quot; Button to generate new image.
-        </div>
-        <div className="output-main-actions" style={{ padding: '30px' }}> {/* Removed textAlign: center, will be handled by flex */ }
-          <button className="imp-button" id="download-as-pdf-button" onClick={handleDownloadPDF}>
-            Download All Images as PDF
-          </button>
-          <button className="delete-button" id="delete-all-button" onClick={handleDeleteAll}>
-            Clear all images
-          </button>
-        </div>
-      </section>
+      {drawingCanvasVisible && (
+        <DrawingCanvas 
+          onClose={() => setDrawingCanvasVisible(false)} 
+          onAddToPaper={handleAddToPaper}
+          inkColor={inkColor}
+          visible={drawingCanvasVisible}
+        />
+      )}
+      
+      <button 
+        type="button" 
+        className="draw-button" 
+        onClick={() => setDrawingCanvasVisible(true)}
+      >
+        Add Drawing
+      </button>
 
-      <DrawingCanvas
-        inkColor={inkColor}
-        visible={drawingCanvasVisible}
-        onClose={() => setDrawingCanvasVisible(false)}
-        onAddToPaper={handleAddToPaper}
-      />
-      
-      {isGenerating && <LoadingSpinner message="Generating handwritten text..." />}
-      
+      <button 
+        type="button" 
+        className="theme-toggle-button" 
+        onClick={toggleTheme}
+        title={isDark ? "Switch to Light Mode" : "Switch to Dark Mode"}
+      >
+        <span className="fade-in-light" style={{ opacity: isDark ? 0 : 1 }}>☀️</span>
+        <span className="fade-in-dark" style={{ opacity: isDark ? 1 : 0 }}>🌙</span>
+      </button>
     </main>
   );
 }

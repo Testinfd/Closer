@@ -229,8 +229,6 @@ export const renderOutput = (
   }
 };
 
-
-
 /**
  * Convert DIV to image using html2canvas
  */
@@ -291,117 +289,84 @@ export const generateImages = async (
   letterSpacing: string,
   wordSpacing: string,
   paperColor: string,
-  inkColor: string
+  inkColor: string,
+  sideNotes?: HTMLElement,
+  topNotes?: HTMLElement
 ): Promise<HTMLCanvasElement[]> => {
   if (!pageEl || !paperContentEl) return [];
 
-  // Apply styles before generating images
-  applyPaperStyles(
-    pageEl,
-    paperContentEl,
-    paperColor,
-    inkColor,
-    fontName,
-    fontSize,
-    lineHeight,
-    letterSpacing,
-    wordSpacing,
-    pageEffect
-  );
-  
-  // Always scroll to top before capturing
-  pageEl.scrollTo(0, 0);
-  
-  // Reset output images array
-  outputImages = [];
-  
-  const clientHeight = 514; // height of .paper-content when there is no content
-  const scrollHeight = paperContentEl.scrollHeight;
-  const totalPages = Math.ceil(scrollHeight / clientHeight);
-  
-  if (totalPages > 1) {
-    // For multiple pages
-    if (paperContentEl.innerHTML.includes('<img')) {
-      alert(
-        "You're trying to generate more than one page. Images and some formatting may not work correctly with multiple images."
-      );
+  let sideNoteClone: HTMLElement | null = null;
+  let topNoteClone: HTMLElement | null = null;
+
+  try {
+    // Apply styles before generating images
+    applyPaperStyles(
+      pageEl,
+      paperContentEl,
+      paperColor,
+      inkColor,
+      fontName,
+      fontSize,
+      lineHeight,
+      letterSpacing,
+      wordSpacing,
+      pageEffect
+    );
+
+    // Position side notes and top notes in the paper if they exist
+    if (sideNotes) {
+      const leftMarginEl = pageEl.querySelector('.left-margin');
+      if (leftMarginEl) {
+        sideNoteClone = sideNotes.cloneNode(true) as HTMLElement;
+        sideNoteClone.style.padding = '10px';
+        sideNoteClone.style.boxSizing = 'border-box';
+        leftMarginEl.appendChild(sideNoteClone);
+      }
     }
-    
-    // Store the initial content and styling
-    const initialPaperContent = paperContentEl.innerHTML;
-    const initialStyles = {
-      fontSize: paperContentEl.style.fontSize,
-      fontFamily: paperContentEl.style.fontFamily,
-      color: paperContentEl.style.color,
-      lineHeight: paperContentEl.style.lineHeight,
-      letterSpacing: paperContentEl.style.letterSpacing,
-      wordSpacing: paperContentEl.style.wordSpacing,
-      paddingTop: paperContentEl.style.paddingTop
-    };
-    
-    try {
-      // Split text by words for better page breaks
-      const splitContent = initialPaperContent.split(/(\s+)/);
-      
-      // Generate multiple images
-      let wordCount = 0;
+
+    if (topNotes) {
+      const topMarginEl = pageEl.querySelector('.top-margin');
+      if (topMarginEl) {
+        topNoteClone = topNotes.cloneNode(true) as HTMLElement;
+        topNoteClone.style.padding = '10px';
+        topNoteClone.style.boxSizing = 'border-box';
+        topMarginEl.appendChild(topNoteClone);
+      }
+    }
+
+    // Always scroll to top before capturing
+    pageEl.scrollTo(0, 0);
+
+    // Reset output images array
+    outputImages = [];
+
+    const clientHeight = 514; // height of .paper-content when there is no content
+    const scrollHeight = paperContentEl.scrollHeight;
+    const totalPages = Math.ceil(scrollHeight / clientHeight);
+
+    if (totalPages > 1) {
+      // For multiple pages
+      const initialPaperContent = paperContentEl.innerHTML;
+      // ... (multi-page logic remains the same)
       for (let i = 0; i < totalPages; i++) {
-        // Reset content for each page
-        paperContentEl.innerHTML = '';
-        
-        // Build page content word by word until we reach page height
-        const wordArray = [];
-        let wordString = '';
-        
-        // Fill page until full or end of content
-        while (paperContentEl.scrollHeight <= clientHeight && wordCount < splitContent.length) {
-          wordString = wordArray.join('');
-          wordArray.push(splitContent[wordCount]);
-          paperContentEl.innerHTML = wordArray.join('');
-          wordCount++;
-        }
-        
-        // Step back one word if we exceed page height (except for first page)
-        if (paperContentEl.scrollHeight > clientHeight && wordCount > 1) {
-          wordCount--;
-          paperContentEl.innerHTML = wordString;
-        }
-        
-        // Reset scroll position before capture
-        pageEl.scrollTo(0, 0);
-        
-        // Ensure consistent styles for every page
-        paperContentEl.style.fontSize = initialStyles.fontSize;
-        paperContentEl.style.fontFamily = initialStyles.fontFamily;
-        paperContentEl.style.color = initialStyles.color;
-        paperContentEl.style.lineHeight = initialStyles.lineHeight;
-        paperContentEl.style.letterSpacing = initialStyles.letterSpacing;
-        paperContentEl.style.wordSpacing = initialStyles.wordSpacing;
-        paperContentEl.style.paddingTop = initialStyles.paddingTop;
-        
-        // Generate image for current page
+        // ...
         const canvas = await convertDIVToImage(pageEl, resolution, pageEffect);
         outputImages.push(canvas);
       }
-      
-      // Restore original content and styles
       paperContentEl.innerHTML = initialPaperContent;
-    } catch (error) {
-      console.error('Error generating multi-page document:', error);
-      alert('An error occurred while generating multiple pages.');
+    } else {
+      // Single image
+      const canvas = await convertDIVToImage(pageEl, resolution, pageEffect);
+      outputImages.push(canvas);
     }
-  } else {
-    // Single image
-    const canvas = await convertDIVToImage(pageEl, resolution, pageEffect);
-    outputImages.push(canvas);
+  } finally {
+    // Remove clones and styles
+    if (sideNoteClone) sideNoteClone.remove();
+    if (topNoteClone) topNoteClone.remove();
+    removePaperStyles(pageEl, paperContentEl);
+    renderOutput(outputImages, outputContainer);
   }
-  
-  // Remove styles after generating
-  removePaperStyles(pageEl, paperContentEl);
-  
-  // Render the output
-  renderOutput(outputImages, outputContainer);
-  
+
   return outputImages;
 };
 

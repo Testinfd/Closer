@@ -7,7 +7,8 @@
  * @param baselineJitterAmount Maximum amount of jitter in pixels
  */
 export function getRandomBaselineJitter(baselineJitterAmount: number = 2): number {
-  return (Math.random() - 0.5) * baselineJitterAmount;
+  // Use a smaller multiplier for more subtle variations
+  return (Math.random() - 0.5) * baselineJitterAmount * 0.8;
 }
 
 /**
@@ -16,7 +17,8 @@ export function getRandomBaselineJitter(baselineJitterAmount: number = 2): numbe
  * @param variationAmount Maximum variation amount in pixels
  */
 export function getRandomLetterSpacing(baseSpacing: number, variationAmount: number = 1): number {
-  return baseSpacing + (Math.random() - 0.5) * variationAmount;
+  // Use a smaller multiplier for more subtle variations
+  return baseSpacing + (Math.random() - 0.5) * variationAmount * 0.6;
 }
 
 /**
@@ -25,7 +27,8 @@ export function getRandomLetterSpacing(baseSpacing: number, variationAmount: num
  * @param variationAmount Maximum variation amount in pixels
  */
 export function getRandomWordSpacing(baseSpacing: number, variationAmount: number = 2): number {
-  return baseSpacing + (Math.random() - 0.5) * variationAmount;
+  // Use a smaller multiplier for more subtle variations
+  return baseSpacing + (Math.random() - 0.5) * variationAmount * 0.7;
 }
 
 /**
@@ -75,17 +78,17 @@ export function createRandomizedCharacter(
     return {};
   }
   
-  // Random rotation between -2 and 2 degrees
-  const rotation = (Math.random() - 0.5) * 4;
+  // More subtle rotation between -1 and 1 degrees (previously -2 and 2)
+  const rotation = (Math.random() - 0.5) * 2;
   
-  // Random scale between 0.95 and 1.05
-  const scale = 0.95 + Math.random() * 0.1;
+  // More subtle scale between 0.98 and 1.02 (previously 0.95 and 1.05)
+  const scale = 0.98 + Math.random() * 0.04;
   
-  // Slight random baseline shift
-  const baselineShift = (Math.random() - 0.5) * 2;
+  // More subtle baseline shift
+  const baselineShift = (Math.random() - 0.5) * 1.5;
   
-  // Random ink opacity variation for natural ink flow
-  const opacity = 0.85 + Math.random() * 0.15;
+  // More subtle ink opacity variation for natural ink flow
+  const opacity = 0.9 + Math.random() * 0.1;
   
   return {
     display: 'inline-block',
@@ -101,41 +104,103 @@ export function createRandomizedCharacter(
  * Applies ink variations to simulate natural handwriting pressure
  * @param element HTML element to apply the effect to
  * @param inkColor Base ink color
+ * @param intensity Intensity of the effect (0-1)
  */
-export function applyInkVariations(element: HTMLElement, inkColor: string): void {
+export function applyInkVariations(element: HTMLElement, inkColor: string, intensity: number = 0.7): void {
+  if (!element) return;
+  
   // Convert hex to RGB for manipulation
-  const r = parseInt(inkColor.slice(1, 3), 16);
-  const g = parseInt(inkColor.slice(3, 5), 16);
-  const b = parseInt(inkColor.slice(5, 7), 16);
+  const parseColor = (color: string) => {
+    // Handle non-hex colors
+    if (!color.startsWith('#')) {
+      return { r: 0, g: 0, b: 0 };
+    }
+    
+    const r = parseInt(color.slice(1, 3), 16);
+    const g = parseInt(color.slice(3, 5), 16);
+    const b = parseInt(color.slice(5, 7), 16);
+    return { r, g, b };
+  };
+  
+  const rgb = parseColor(inkColor);
   
   // Apply to all text nodes
   const walker = document.createTreeWalker(element, NodeFilter.SHOW_TEXT);
   let node: Text | null;
   
   while ((node = walker.nextNode() as Text | null)) {
-    if (!node.textContent?.trim()) continue;
+    if (!node?.textContent?.trim()) continue;
     
-    // Split text into individual characters
-    const fragment = document.createDocumentFragment();
+    // Apply more subtle variations based on the intensity parameter
     const text = node.textContent || '';
+    const fragment = document.createDocumentFragment();
     
+    // Choose a few random positions in the text to vary more noticeably
+    // (but still subtly)
+    const specialPositions: number[] = [];
+    const wordPositions = text.split(' ').map((_, i, arr) => 
+      arr.slice(0, i).join(' ').length + (i > 0 ? i : 0)
+    );
+    
+    // Select 2-3 positions for slightly more variation
+    if (wordPositions.length > 3) {
+      for (let i = 0; i < Math.min(3, Math.floor(wordPositions.length * 0.3)); i++) {
+        const randomIdx = Math.floor(Math.random() * wordPositions.length);
+        specialPositions.push(wordPositions[randomIdx]);
+      }
+    }
+    
+    // Process each character
     for (let i = 0; i < text.length; i++) {
       const char = text[i];
       const span = document.createElement('span');
       span.textContent = char;
       
-      // Random ink density
-      const density = 0.7 + Math.random() * 0.3;
-      const darkR = Math.floor(r * density);
-      const darkG = Math.floor(g * density);
-      const darkB = Math.floor(b * density);
+      // Skip significant processing for spaces
+      if (char === ' ' || char === '\n' || char === '\t') {
+        fragment.appendChild(span);
+        continue;
+      }
       
-      // Apply varying styles
+      // Determine if this is a special position for slightly more variation
+      const isSpecialPosition = specialPositions.some(pos => 
+        i >= pos && i <= pos + 2 // The character and next few chars at this position
+      );
+      
+      // Apply more variation for special positions, less for others
+      const variationMultiplier = isSpecialPosition ? intensity : intensity * 0.6;
+      
+      // Random ink density with more subtle variations
+      const densityVariation = variationMultiplier * 0.3; // 0.3 is max variation
+      const density = 0.85 + Math.random() * densityVariation;
+      const darkR = Math.floor(rgb.r * density);
+      const darkG = Math.floor(rgb.g * density);
+      const darkB = Math.floor(rgb.b * density);
+      
+      // Apply very subtle rotation
+      const rotation = isSpecialPosition 
+        ? (Math.random() - 0.5) * 2 * variationMultiplier
+        : (Math.random() - 0.5) * 0.7 * variationMultiplier;
+      
+      // Apply subtle styles
       span.style.color = `rgb(${darkR}, ${darkG}, ${darkB})`;
+      span.style.display = 'inline-block';
       
-      // Random thickness
-      const thickness = 1 + Math.random() * 0.2;
-      span.style.fontWeight = (400 * thickness).toString();
+      // Only apply transformation if not a space
+      if (char.trim()) {
+        span.style.transform = `rotate(${rotation}deg)`;
+        
+        // Apply subtle baseline jitter
+        const baselineJitter = (Math.random() - 0.5) * variationMultiplier * 1.5;
+        span.style.position = 'relative';
+        span.style.top = `${baselineJitter}px`;
+        
+        // Apply subtle size variation
+        const sizeVariation = isSpecialPosition 
+          ? 1 + (Math.random() - 0.5) * 0.05 * variationMultiplier
+          : 1 + (Math.random() - 0.5) * 0.02 * variationMultiplier;
+        span.style.fontSize = `${sizeVariation}em`;
+      }
       
       fragment.appendChild(span);
     }
@@ -153,11 +218,109 @@ export function applyInkVariations(element: HTMLElement, inkColor: string): void
  * @param maxVariation Maximum variation in line end position (percentage)
  */
 export function applyNonUniformLineEndings(element: HTMLElement, maxVariation: number = 5): void {
-  const paragraphs = element.querySelectorAll('p');
+  if (!element) return;
+  
+  // Find all paragraph elements
+  const paragraphs = element.querySelectorAll('p, div[data-slate-node="element"]');
   
   paragraphs.forEach((p) => {
+    // Skip empty paragraphs
+    if (!p.textContent?.trim()) return;
+    
     // Random width percentage between 100-maxVariation and 100
-    const widthPercentage = 100 - Math.random() * maxVariation;
-    p.style.width = `${widthPercentage}%`;
+    // More subtle variation: use only half the max variation most of the time
+    const useSubtle = Math.random() > 0.3; // 70% chance of subtle variation
+    const actualVariation = useSubtle ? maxVariation * 0.5 : maxVariation;
+    const widthPercentage = 100 - Math.random() * actualVariation;
+    (p as HTMLElement).style.width = `${widthPercentage}%`;
+    
+    // Add a very slight random rotation for more natural look
+    // More subtle rotation
+    const rotation = (Math.random() - 0.5) * 0.3; // -0.15 to 0.15 degrees (was -0.25 to 0.25)
+    (p as HTMLElement).style.transform = `rotate(${rotation}deg)`;
+  });
+}
+
+/**
+ * Applies subtle randomization to specific words in the text
+ * This creates a more natural handwriting effect by varying just a few words
+ * @param element HTML element to process
+ * @param intensity Intensity of the randomization (0-1)
+ */
+export function applyWordVariations(element: HTMLElement, intensity: number = 0.7): void {
+  if (!element) return;
+  
+  // Find paragraphs and process text nodes
+  const paragraphs = element.querySelectorAll('p, div[data-slate-node="element"]');
+  
+  paragraphs.forEach((paragraph) => {
+    // Get all direct text nodes in the paragraph
+    const textNodes = [];
+    for (let i = 0; i < paragraph.childNodes.length; i++) {
+      const node = paragraph.childNodes[i];
+      if (node.nodeType === Node.TEXT_NODE) {
+        textNodes.push(node);
+      }
+    }
+    
+    textNodes.forEach((textNode) => {
+      const text = textNode.textContent || '';
+      const words = text.split(/\s+/);
+      
+      // Only process if we have enough words
+      if (words.length <= 2) return;
+      
+      // Select 1-3 words to vary
+      const numWordsToVary = Math.max(1, Math.floor(words.length * 0.2));
+      const wordIndexesToVary = new Set<number>();
+      
+      while (wordIndexesToVary.size < numWordsToVary) {
+        const randomIndex = Math.floor(Math.random() * words.length);
+        if (words[randomIndex].length >= 3) { // Only vary words with sufficient length
+          wordIndexesToVary.add(randomIndex);
+        }
+      }
+      
+      // Create document fragment to replace text node
+      const fragment = document.createDocumentFragment();
+      let currentPosition = 0;
+      
+      words.forEach((word, i) => {
+        if (wordIndexesToVary.has(i)) {
+          // This word needs variation
+          const wordSpan = document.createElement('span');
+          wordSpan.textContent = word;
+          
+          // Apply subtle letter spacing variation
+          const letterSpacing = (Math.random() - 0.5) * 0.5 * intensity;
+          wordSpan.style.letterSpacing = `${letterSpacing}px`;
+          
+          // Apply subtle baseline shift
+          const baselineShift = (Math.random() - 0.5) * intensity;
+          wordSpan.style.position = 'relative';
+          wordSpan.style.top = `${baselineShift}px`;
+          
+          // Very subtle rotation
+          const rotation = (Math.random() - 0.5) * intensity * 0.6;
+          wordSpan.style.display = 'inline-block';
+          wordSpan.style.transform = `rotate(${rotation}deg)`;
+          
+          fragment.appendChild(wordSpan);
+        } else {
+          // Regular word, no variation
+          fragment.appendChild(document.createTextNode(word));
+        }
+        
+        // Add space after word if not the last word
+        if (i < words.length - 1) {
+          fragment.appendChild(document.createTextNode(' '));
+        }
+      });
+      
+      // Replace the text node with our fragment
+      if (textNode.parentNode) {
+        textNode.parentNode.replaceChild(fragment, textNode);
+      }
+    });
   });
 } 

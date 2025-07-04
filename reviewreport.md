@@ -4,7 +4,7 @@ This report provides a detailed analysis of the entire project, including subdir
 
 ## 1. Critical Issues & Contradictions
 
-*   **Duplicate `html2canvas` Loading:** The project loads the `html2canvas` library in two different ways, which is redundant and can lead to conflicts.
+*   **Duplicate `html2canvas` Loading:** The project loads the `html2canvas` library in two different ways, which is redundant and and can lead to conflicts.
     *   **Static Loading:** In `src/app/layout.tsx`, it's loaded via a `<Script>` tag from `public/vendors/html2canvas.min.js`.
     *   **Dynamic Loading:** In `src/utils/html2canvas-loader.ts`, it's loaded dynamically using `import('html2canvas')`. The `generate.ts` file uses this dynamic loader.
     *   **Recommendation:** Remove the static script loading from `layout.tsx` and rely solely on the dynamic import in `html2canvas-loader.ts`. This is the modern and recommended approach for large libraries.
@@ -31,7 +31,7 @@ This report provides a detailed analysis of the entire project, including subdir
 *   **`EnhancedPaper.tsx`:** This is a well-structured but complex component. The use of `forwardRef` and `useImperativeHandle` is appropriate for its purpose. The effects from `paper-effects.ts` and `handwriting-randomization.ts` are applied here.
 *   **`FontUploader.tsx`:** This component correctly uses `localStorage` to persist uploaded fonts, which is a nice feature.
 *   **`RichTextEditor.tsx`:** The editor is functional and includes a basic toolbar. The use of KaTeX for math formulas is a good addition.
-*   **`generate.ts`:** This is the core of the image generation logic. It's a large file with a lot of responsibility, including multi-page handling, thumbnail generation, and PDF creation. It could benefit from being broken down into smaller, more specialized functions.
+*   **`generate.ts`:** This is the core of the image generation logic. It's a large file with a lot of responsibility, including multi-page handling, thumbnail generation, and PDF creation. It could benefit from from being broken down into smaller, more specialized functions.
 *   **`slate-serializer.ts`:** The serializer is well-implemented and handles the conversion between Slate's format and HTML.
 
 ## 4. Security & Best Practices

@@ -108,18 +108,18 @@ graph TD
 ### Detailed Workflow
 
 1.  **Initialization & State Management:**
-    *   The application is centered around the main page component (`src/app/page.tsx`), which is responsible for managing the state of the entire application using a large number of `useState` hooks.
-    *   The `RootLayout` (`src/app/layout.tsx`) sets up the global fonts and dynamically loads `html2canvas` via a `<Script>` tag (though this is redundant, as it's also loaded dynamically elsewhere).
+    *   The application is centered around the main page component (`src/app/page.tsx`), which is responsible for managing a significant portion of the application's state using numerous `useState` hooks. This approach, while functional, can lead to a large and complex component that may be challenging to maintain and debug.
+    *   The `RootLayout` (`src/app/layout.tsx`) sets up global fonts and attempts to load `html2canvas` via a `<Script>` tag. However, `html2canvas` is also dynamically loaded elsewhere, leading to redundant loading.
 
 2.  **User Interaction & Components:**
-    *   **`RichTextEditor`:** The user interacts with a Slate.js-based rich text editor (`src/components/RichTextEditor.tsx`) that supports formatting and KaTeX for mathematical formulas.
-    *   **`CustomizationForm`:** This component (`src/components/CustomizationForm.tsx`) provides a wide range of options to customize the output, from font and color to paper size and effects. All changes update the state in the main `page.tsx` component.
+    *   **`RichTextEditor`:** The user interacts with a Slate.js-based rich text editor (`src/components/RichTextEditor.tsx`) that supports formatting and KaTeX for mathematical formulas. Separate instances are used for the main content, side notes, and top notes, which currently limits their full integration with paper effects.
+    *   **`CustomizationForm`:** This component (`src/components/CustomizationForm.tsx`) provides a wide range of options to customize the output, from font and color to paper size and effects. All changes update the state in the main `page.tsx` component, contributing to its complexity.
     *   **`DrawingCanvas`:** A separate canvas component (`src/components/DrawingCanvas.tsx`) allows users to draw or add images, which can then be added to the main paper.
     *   **`FontUploader`:** Users can upload their own font files using the `FontUploader` component (`src/components/FontUploader.tsx`), which uses `localStorage` to persist the fonts across sessions.
 
 3.  **Rendering & Effects:**
-    *   **`EnhancedPaper`:** This is the central component (`src/components/EnhancedPaper.tsx`) that brings everything together. It takes the user's text, drawings, and all the customization options to render a preview of the final output.
-    *   **`paper-effects.ts` & `handwriting-randomization.ts`:** These utility files contain functions that apply realistic effects to the `EnhancedPaper` component, such as paper textures, ink bleed, and variations in the handwriting to make it look more natural.
+    *   **`EnhancedPaper`:** This is the central component (`src/components/EnhancedPaper.tsx`) that brings everything together. It takes the user's text, drawings, and all the customization options to render a preview of the final output. While it applies various effects, these are currently not fully integrated with the side and top note areas.
+    *   **`paper-effects.ts` & `handwriting-randomization.ts`:** These utility files contain functions that apply realistic effects to the `EnhancedPaper` component, such as paper textures, ink bleed, and variations in the handwriting to make it look more natural. Further work is needed to ensure these effects are consistently applied across all text areas, including side and top notes.
 
 4.  **Image & PDF Generation:**
     *   **`generate.ts`:** This is the powerhouse of the application. When the user clicks "Generate Image," this utility takes the `EnhancedPaper` DOM element and uses the `html2canvas` library to capture it as an image.
@@ -128,7 +128,7 @@ graph TD
 
 5.  **Serialization & Sanitization:**
     *   **`slate-serializer.ts`:** This utility is responsible for converting the Slate.js editor's content to and from HTML.
-    *   **`sanitize.ts`:** To prevent XSS attacks, all user-provided content is passed through a sanitizer before being rendered.
+    *   **`sanitize.ts`:** To prevent XSS attacks, all user-provided content is passed through a sanitizer before being rendered. Consistent application of sanitization across all user inputs is crucial.
 
 ## License
 

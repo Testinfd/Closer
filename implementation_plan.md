@@ -14,15 +14,15 @@
 - [x] Save preferences in local storage for persistence
 
 ## Phase 3: Handwriting Randomization Feature
-- [x] **IN PROGRESS** Implement toggle control in the customization panel
-- [ ] Implement baseline jitter functionality (subtle vertical offset for text)
-- [ ] Add letter variation (small changes in character appearance)
-- [ ] Implement variable spacing between letters and words
-- [ ] Create settings to control randomization intensity (subtle by default)
-- [ ] Ensure randomization is consistent across generated pages
+- [x] Implement toggle control in the customization panel
+- [x] Implement baseline jitter functionality (subtle vertical offset for text)
+- [x] Add letter variation (small changes in character appearance)
+- [x] Implement variable spacing between letters and words
+- [x] Create settings to control randomization intensity (subtle by default)
+- [x] Ensure randomization is consistent across generated pages
 
 ## Phase 4: Preview Text with Examples
-- [ ] Create example/placeholder text with academic content
+- [ ] **IN PROGRESS** Create example/placeholder text with academic content
 - [ ] Include physics and math equations using KaTeX/MathJax
 - [ ] Design overlay system that disappears on focus/typing
 - [ ] Implement separate example content for main area, side notes, and top notes

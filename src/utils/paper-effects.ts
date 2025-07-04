@@ -13,30 +13,42 @@ export function applyPaperTexture(
   textureUrl: string,
   opacity: number = 0.2
 ): void {
-  element.style.position = 'relative';
+  // Ensure the element has relative positioning for proper overlay
+  if (getComputedStyle(element).position === 'static') {
+    element.style.position = 'relative';
+  }
   element.style.overflow = 'hidden';
 
   // Find or create the texture overlay element
   let overlay = element.querySelector('.paper-texture-overlay') as HTMLElement;
-  if (!overlay) {
-    overlay = document.createElement('div');
-    overlay.classList.add('paper-texture-overlay');
-    
-    // Position behind the text but above the background
-    overlay.style.position = 'absolute';
-    overlay.style.inset = '0';
-    overlay.style.pointerEvents = 'none';
-    overlay.style.zIndex = '0';
-    
-    // Make sure content appears above the texture
-    const contentElements = Array.from(element.children);
-    contentElements.forEach(child => {
+  if (overlay) {
+    // Remove existing overlay to prevent duplicates
+    overlay.remove();
+  }
+  
+  overlay = document.createElement('div');
+  overlay.classList.add('paper-texture-overlay');
+  
+  // Position behind the text but above the background
+  overlay.style.position = 'absolute';
+  overlay.style.inset = '0';
+  overlay.style.pointerEvents = 'none';
+  overlay.style.zIndex = '0';
+  overlay.style.width = '100%';
+  overlay.style.height = '100%';
+  overlay.style.top = '0';
+  overlay.style.left = '0';
+  overlay.style.right = '0';
+  overlay.style.bottom = '0';
+  
+  // Make sure content appears above the texture
+  const contentElements = Array.from(element.children);
+  contentElements.forEach(child => {
+    if (child !== overlay) {
       (child as HTMLElement).style.position = 'relative';
       (child as HTMLElement).style.zIndex = '1';
-    });
-    
-    element.prepend(overlay);
-  }
+    }
+  });
   
   // Apply the texture
   overlay.style.backgroundImage = `url(${textureUrl})`;
@@ -46,6 +58,9 @@ export function applyPaperTexture(
   // Apply a slight rotation for more realism
   const rotation = (Math.random() - 0.5) * 2; // -1 to 1 degrees
   overlay.style.transform = `rotate(${rotation}deg)`;
+  
+  // Insert at the beginning to ensure it's behind all content
+  element.prepend(overlay);
 }
 
 /**
@@ -59,8 +74,15 @@ export function applyInkBleedEffect(
   inkColor: string,
   bleedIntensity: number = 0.3
 ): void {
+  if (!element) return;
+  
   // Parse the color to RGB components
   const hexToRgb = (hex: string): { r: number, g: number, b: number } => {
+    // Handle non-hex colors by returning a default
+    if (!hex || !hex.startsWith('#')) {
+      return { r: 0, g: 0, b: 0 };
+    }
+    
     const r = parseInt(hex.slice(1, 3), 16);
     const g = parseInt(hex.slice(3, 5), 16);
     const b = parseInt(hex.slice(5, 7), 16);
@@ -74,7 +96,7 @@ export function applyInkBleedEffect(
   let node: Text | null;
   
   while ((node = walker.nextNode() as Text | null)) {
-    if (!node.textContent?.trim()) continue;
+    if (!node?.textContent?.trim()) continue;
     
     // Get parent element of text node
     const parent = node.parentNode as HTMLElement;
@@ -96,6 +118,8 @@ export function applyInkBleedEffect(
  * @param element Target HTML element containing text
  */
 export function applyInkPressureVariations(element: HTMLElement): void {
+  if (!element) return;
+  
   // Find all text elements
   const textElements = element.querySelectorAll('p, span, div');
   
@@ -130,14 +154,33 @@ export function applyInkPressureVariations(element: HTMLElement): void {
  * @param intensity Intensity of the effect (0-1)
  */
 export function applyPaperImperfections(element: HTMLElement, intensity: number = 0.3): void {
+  if (!element) return;
+  
+  // Ensure the element has relative positioning for proper overlay
+  if (getComputedStyle(element).position === 'static') {
+    element.style.position = 'relative';
+  }
+  
   // Create imperfection overlay
-  const overlay = document.createElement('div');
+  let overlay = element.querySelector('.paper-imperfections') as HTMLElement;
+  if (overlay) {
+    // Remove existing overlay to prevent duplicates
+    overlay.remove();
+  }
+  
+  overlay = document.createElement('div');
   overlay.classList.add('paper-imperfections');
   overlay.style.position = 'absolute';
   overlay.style.inset = '0';
   overlay.style.pointerEvents = 'none';
   overlay.style.zIndex = '0';
   overlay.style.opacity = (intensity * 0.5).toString();
+  overlay.style.width = '100%';
+  overlay.style.height = '100%';
+  overlay.style.top = '0';
+  overlay.style.left = '0';
+  overlay.style.right = '0';
+  overlay.style.bottom = '0';
   
   // Add subtle creases
   const numCreases = Math.floor(2 + Math.random() * 3); // 2-4 creases
@@ -197,10 +240,6 @@ export function applyPaperImperfections(element: HTMLElement, intensity: number 
     overlay.appendChild(stain);
   }
   
-  // Add overlay to the element if it has position
-  if (getComputedStyle(element).position === 'static') {
-    element.style.position = 'relative';
-  }
-  
-  element.appendChild(overlay);
+  // Insert at the beginning to ensure it's behind all content
+  element.prepend(overlay);
 } 

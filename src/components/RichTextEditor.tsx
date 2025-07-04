@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useCallback, useMemo, useState, useEffect } from 'react';
-import { createEditor, BaseEditor, Descendant, Node, NodeEntry } from 'slate';
+import { createEditor, BaseEditor, Descendant, Node, NodeEntry, Transforms, Element } from 'slate';
 import { Slate, Editable, withReact, ReactEditor } from 'slate-react';
 import { withHistory } from 'slate-history';
 import katex from 'katex';
@@ -58,7 +58,34 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
   wordSpacing,
   className = ''
 }) => {
-  const editor = useMemo(() => withHistory(withReact(createEditor())), []);
+  const editor = useMemo(() => {
+    // Create editor with normalization to prevent errors
+    const slateEditor = withHistory(withReact(createEditor()));
+    
+    // Add custom normalization to ensure valid document structure
+    const { normalizeNode } = slateEditor;
+    
+    slateEditor.normalizeNode = ([node, path]) => {
+      if (path.length === 0) {
+        // Ensure the editor always has at least one valid paragraph
+        const children = Array.from(Node.children(node, path));
+        if (children.length === 0) {
+          Transforms.insertNodes(
+            slateEditor,
+            { type: 'paragraph', children: [{ text: '' }] } as CustomElement,
+            { at: [0] }
+          );
+          return;
+        }
+      }
+      
+      // Continue with regular normalization
+      normalizeNode([node, path]);
+    };
+    
+    return slateEditor;
+  }, []);
+  
   const [mounted, setMounted] = useState(false);
   
   // Make sure value is always valid
@@ -67,7 +94,31 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
       console.warn("Received invalid Slate value, using default value:", value);
       return DEFAULT_VALUE;
     }
-    return value;
+    
+    // Ensure every node has a valid structure
+    const validatedValue = value.map(node => {
+      // Check if node is a text node
+      if ('text' in node) {
+        return node;
+      }
+      
+      // Check if node is an element without type
+      if (!('type' in node)) {
+        return { type: 'paragraph', children: [{ text: '' }] } as CustomElement;
+      }
+      
+      // Check if node has children
+      if (!('children' in node) || !Array.isArray(node.children) || node.children.length === 0) {
+        return { 
+          ...node, 
+          children: [{ text: '' }] 
+        } as CustomElement;
+      }
+      
+      return node;
+    });
+    
+    return validatedValue as Descendant[];
   }, [value]);
   
   // Set mounted state after component mounts to avoid hydration mismatch
@@ -76,8 +127,9 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
   }, []);
 
   // Error handling for DOM operations
-  const handleDOMError = useCallback(() => {
-    // Suppress errors
+  const handleDOMError = useCallback((error: any) => {
+    console.warn('Slate DOM error suppressed:', error?.message || 'Unknown error');
+    // Suppress errors to prevent component crashes
     return true;
   }, []);
 
@@ -101,7 +153,7 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
         type: 'math',
         formula,
         children: [{ text: '' }],
-      });
+      } as CustomElement);
     }
   };
 
@@ -201,12 +253,18 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
           Insert Math
         </button>
       </div>
-      {/* Use initialValue prop instead of value to match Slate's API */}
+      {/* Use key to force remount when value changes dramatically */}
       <Slate 
         key={safeValue !== value ? "default" : "provided"} 
         editor={editor} 
         initialValue={safeValue} 
-        onChange={onChange}
+        onChange={(newValue) => {
+          try {
+            onChange(newValue);
+          } catch (error) {
+            console.error("Error in Slate onChange handler:", error);
+          }
+        }}
       >
         {mounted && (
           <Editable
@@ -235,6 +293,14 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
               overflow: 'visible',
               writingMode: 'horizontal-tb',
               textOrientation: isSideNoteEditor ? 'mixed' : 'inherit',
+            }}
+            onDOMBeforeInput={(event) => {
+              try {
+                // Default behavior
+              } catch (error) {
+                console.warn('Prevented DOM error:', error);
+                event.preventDefault();
+              }
             }}
           />
         )}

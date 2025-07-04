@@ -149,6 +149,10 @@ export default function Home() {
     setShowExternalText(prev => !prev);
   };
 
+  const handleToggleRandomizeHandwriting = () => {
+    setRandomizeHandwriting(prev => !prev);
+  };
+
   const handleGenerateImages = async () => {
     const paperEl = paperRef.current;
     const outputContainer = document.getElementById('output');
@@ -301,17 +305,11 @@ export default function Home() {
               setPaperSize={setPaperSize}
               handwritingFonts={HANDWRITING_FONTS}
               pageEffects={PAGE_EFFECTS}
+              sideNotesVisible={showExternalText}
+              toggleSideNotes={handleToggleExternalText}
+              randomizeHandwriting={randomizeHandwriting}
+              toggleRandomizeHandwriting={handleToggleRandomizeHandwriting}
             />
-            
-            {/* External Text Toggle Button */}
-            <div className="external-text-toggle" style={{marginTop: '20px'}}>
-                <button
-                onClick={handleToggleExternalText}
-                className={showExternalText ? 'imp-button' : 'generate-image-button'}
-              >
-                {showExternalText ? 'Hide Side & Top Notes' : 'Show Side & Top Notes'}
-                </button>
-            </div>
             
             {/* External Text Editors */}
             {showExternalText && (
@@ -326,7 +324,7 @@ export default function Home() {
                         value={htmlToSlateValue(sideText)}
                         onChange={(newValue) => {
                           const html = slateValueToHtml(newValue);
-                          setSideText(html);
+                          setSideText(sanitizeRichTextContent(html, true));
                         }}
                         inkColor={inkColor}
                         fontFamily={fontFamily}
@@ -344,7 +342,7 @@ export default function Home() {
                         value={htmlToSlateValue(topText)}
                         onChange={(newValue) => {
                           const html = slateValueToHtml(newValue);
-                          setTopText(html);
+                          setTopText(sanitizeRichTextContent(html, true));
                         }}
                         inkColor={inkColor}
                         fontFamily={fontFamily}

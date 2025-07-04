@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import { HandwritingFont, PageEffects } from '../types';
 
 interface CustomizationFormProps {
@@ -29,6 +29,10 @@ interface CustomizationFormProps {
   setPaperSize: (size: string) => void;
   handwritingFonts: HandwritingFont[];
   pageEffects: PageEffects[];
+  sideNotesVisible?: boolean;
+  toggleSideNotes?: () => void;
+  randomizeHandwriting?: boolean;
+  toggleRandomizeHandwriting?: () => void;
 }
 
 const CustomizationForm: React.FC<CustomizationFormProps> = ({
@@ -56,8 +60,15 @@ const CustomizationForm: React.FC<CustomizationFormProps> = ({
   paperSize,
   setPaperSize,
   handwritingFonts,
-  pageEffects
+  pageEffects,
+  sideNotesVisible,
+  toggleSideNotes,
+  randomizeHandwriting = false,
+  toggleRandomizeHandwriting
 }) => {
+  const [collapsed, setCollapsed] = useState(false);
+  const [expandedSection, setExpandedSection] = useState<string | null>('handwriting');
+
   const handleFontFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -94,245 +105,374 @@ const CustomizationForm: React.FC<CustomizationFormProps> = ({
     reader.readAsDataURL(file);
   };
 
+  const toggleSection = (section: string) => {
+    if (expandedSection === section) {
+      setExpandedSection(null);
+    } else {
+      setExpandedSection(section);
+    }
+  };
+
+  const toggleSidebar = () => {
+    setCollapsed(!collapsed);
+  };
+
   return (
-    <div className="customization-col">
-      <div style={{ padding: '5px 0px 5px 0px' }}>
-        <b>Customizations</b> <small>(Optional)</small>
-        <p style={{ fontSize: '0.8rem' }}>
-          <em>
-            Note: Few changes may reflect only in the generated image and not in the preview
-          </em>
-        </p>
-      </div>
-      <fieldset>
-        <legend>Handwriting Options</legend>
-
-        <div className="category-grid">
-          <div>
-            <label className="block" htmlFor="handwriting-font">
-              Handwriting Font
-            </label>
-            <select 
-              id="handwriting-font"
-              value={fontFamily}
-              onChange={(e) => setFontFamily(e.target.value)}
+    <div className={`customization-sidebar ${collapsed ? 'collapsed' : ''}`}>
+      <button 
+        className="sidebar-toggle" 
+        onClick={toggleSidebar}
+        aria-label={collapsed ? "Expand customization panel" : "Collapse customization panel"}
+      >
+        {collapsed ? '›' : '‹'}
+      </button>
+      
+      <div className="sidebar-content">
+        <div className="sidebar-header">
+          <h2>Customizations</h2>
+          <p className="sidebar-note">
+            <em>
+              Note: Some changes may reflect only in the generated image
+            </em>
+          </p>
+        </div>
+        
+        <div className="sidebar-accordion">
+          <div className={`accordion-item ${expandedSection === 'handwriting' ? 'expanded' : ''}`}>
+            <button 
+              className="accordion-header" 
+              onClick={() => toggleSection('handwriting')}
+              aria-expanded={expandedSection === 'handwriting'}
             >
-              {handwritingFonts.map((font) => (
-                <option 
-                  key={font.value}
-                  value={font.value}
-                  style={font.style}
-                >
-                  {font.label}
-                </option>
-              ))}
-            </select>
+              <span>Handwriting Options</span>
+              <span className="accordion-icon">{expandedSection === 'handwriting' ? '▼' : '►'}</span>
+            </button>
+            
+            {expandedSection === 'handwriting' && (
+              <div className="accordion-content">
+                <div className="category-grid">
+                  <div>
+                    <label className="block" htmlFor="handwriting-font">
+                      Handwriting Font
+                    </label>
+                    <select 
+                      id="handwriting-font"
+                      value={fontFamily}
+                      onChange={(e) => setFontFamily(e.target.value)}
+                    >
+                      {handwritingFonts.map((font) => (
+                        <option 
+                          key={font.value}
+                          value={font.value}
+                          style={font.style}
+                        >
+                          {font.label}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="upload-handwriting-container">
+                    <label className="block" htmlFor="font-file">
+                      Upload your handwriting font <small>(Beta)</small>&nbsp;
+                      <a
+                        style={{ fontSize: '1.1rem' }}
+                        title="How to add your own handwriting"
+                        href="#how-to-add-handwriting"
+                      >
+                        &#9432;
+                      </a>
+                    </label>
+                    <input 
+                      accept=".ttf, .otf" 
+                      type="file" 
+                      id="font-file"
+                      onChange={handleFontFileChange}
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="randomize-toggle">
+                      Randomize Handwriting:
+                      <span aria-label="randomization status" className="status">
+                        {randomizeHandwriting ? 'on' : 'off'}
+                      </span>
+                    </label>
+                    <label className="switch-toggle outer">
+                      <input
+                        aria-checked={randomizeHandwriting}
+                        checked={randomizeHandwriting}
+                        onChange={toggleRandomizeHandwriting}
+                        aria-label="Handwriting Randomization Button"
+                        id="randomize-toggle"
+                        type="checkbox"
+                      />
+                      <div></div>
+                    </label>
+                    <p style={{ fontSize: '0.8rem' }}>
+                      <em>
+                        Adds subtle variations to letters and spacing
+                      </em>
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
-          <div className="upload-handwriting-container">
-            <label className="block" htmlFor="font-file">
-              Upload your handwriting font <small>(Beta)</small>&nbsp;
-              <a
-                style={{ fontSize: '1.1rem' }}
-                title="How to add your own handwriting"
-                href="#how-to-add-handwriting"
-              >
-                &#9432;
-              </a>
-            </label>
-            <input 
-              accept=".ttf, .otf" 
-              type="file" 
-              id="font-file"
-              onChange={handleFontFileChange}
-            />
+          
+          <div className={`accordion-item ${expandedSection === 'page' ? 'expanded' : ''}`}>
+            <button 
+              className="accordion-header" 
+              onClick={() => toggleSection('page')}
+              aria-expanded={expandedSection === 'page'}
+            >
+              <span>Page & Text Options</span>
+              <span className="accordion-icon">{expandedSection === 'page' ? '▼' : '►'}</span>
+            </button>
+            
+            {expandedSection === 'page' && (
+              <div className="accordion-content">
+                <div className="category-grid">
+                  <div className="postfix-input" data-postfix="pt">
+                    <label htmlFor="font-size">Font Size</label>
+                    <input
+                      id="font-size"
+                      min="0"
+                      step="0.5"
+                      value={fontSize}
+                      onChange={(e) => setFontSize(e.target.value)}
+                      type="number"
+                    />
+                  </div>
+                  <div>
+                    <label className="block" htmlFor="ink-color">Ink Color</label>
+                    <select 
+                      id="ink-color" 
+                      value={inkColor} 
+                      onChange={(e) => setInkColor(e.target.value)}
+                    >
+                      <option value="#000f55">Blue</option>
+                      <option value="black">Black</option>
+                      <option value="#ba3807">Red</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block" htmlFor="page-size">Page Size</label>
+                    <select 
+                      id="page-size" 
+                      value={paperSize} 
+                      onChange={(e) => setPaperSize(e.target.value)}
+                    >
+                      <option value="A4">A4</option>
+                      <option value="A5">A5</option>
+                      <option value="LETTER">Letter</option>
+                      <option value="LEGAL">Legal</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block" htmlFor="page-effects">Effects</label>
+                    <select 
+                      id="page-effects" 
+                      value={pageEffect} 
+                      onChange={(e) => setPageEffect(e.target.value)}
+                    >
+                      {pageEffects.map((effect) => (
+                        <option key={effect.value} value={effect.value}>
+                          {effect.label}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block" htmlFor="resolution">Resolution</label>
+                    <select 
+                      id="resolution" 
+                      value={resolution} 
+                      onChange={(e) => setResolution(e.target.value)}
+                    >
+                      <option value="0.8">Very Low</option>
+                      <option value="1">Low</option>
+                      <option value="2">Normal</option>
+                      <option value="3">High</option>
+                      <option value="4">Very High</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+          
+          <div className={`accordion-item ${expandedSection === 'spacing' ? 'expanded' : ''}`}>
+            <button 
+              className="accordion-header" 
+              onClick={() => toggleSection('spacing')}
+              aria-expanded={expandedSection === 'spacing'}
+            >
+              <span>Spacing Options</span>
+              <span className="accordion-icon">{expandedSection === 'spacing' ? '▼' : '►'}</span>
+            </button>
+            
+            {expandedSection === 'spacing' && (
+              <div className="accordion-content">
+                <div className="category-grid">
+                  <div className="postfix-input" data-postfix="px">
+                    <label htmlFor="top-padding">Vertical Position</label>
+                    <input 
+                      id="top-padding" 
+                      min="0" 
+                      value={topPadding}
+                      onChange={(e) => setTopPadding(e.target.value)}
+                      type="number" 
+                    />
+                  </div>
+                  <div className="postfix-input" data-postfix="px">
+                    <label htmlFor="word-spacing">Word Spacing</label>
+                    <input
+                      id="word-spacing"
+                      min="0"
+                      max="100"
+                      value={wordSpacing}
+                      onChange={(e) => setWordSpacing(e.target.value)}
+                      type="number"
+                    />
+                  </div>
+                  <div className="postfix-input" data-postfix="pt">
+                    <label htmlFor="letter-spacing">Letter Spacing</label>
+                    <input
+                      id="letter-spacing"
+                      min="-5"
+                      max="40"
+                      value={letterSpacing}
+                      onChange={(e) => setLetterSpacing(e.target.value)}
+                      type="number"
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+          
+          <div className={`accordion-item ${expandedSection === 'notes' ? 'expanded' : ''}`}>
+            <button 
+              className="accordion-header" 
+              onClick={() => toggleSection('notes')}
+              aria-expanded={expandedSection === 'notes'}
+            >
+              <span>Side & Top Notes Options</span>
+              <span className="accordion-icon">{expandedSection === 'notes' ? '▼' : '►'}</span>
+            </button>
+            
+            {expandedSection === 'notes' && (
+              <div className="accordion-content">
+                <div className="category-grid">
+                  <div>
+                    <label htmlFor="side-notes-toggle">
+                      Show Side & Top Notes:
+                      <span aria-label="side notes status" className="status">
+                        {hasMargins ? (sideNotesVisible ? 'visible' : 'hidden') : 'disabled'}
+                      </span>
+                    </label>
+                    <label className="switch-toggle outer">
+                      <input
+                        disabled={!hasMargins}
+                        aria-checked={sideNotesVisible}
+                        checked={sideNotesVisible}
+                        onChange={toggleSideNotes}
+                        aria-label="Side Notes Toggle Button"
+                        id="side-notes-toggle"
+                        type="checkbox"
+                      />
+                      <div></div>
+                    </label>
+                    <p style={{ fontSize: '0.8rem' }}>
+                      <em>
+                        Note: Enable margins to use side and top notes
+                      </em>
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+          
+          <div className={`accordion-item ${expandedSection === 'margins' ? 'expanded' : ''}`}>
+            <button 
+              className="accordion-header" 
+              onClick={() => toggleSection('margins')}
+              aria-expanded={expandedSection === 'margins'}
+            >
+              <span>Margin & Line Options</span>
+              <span className="accordion-icon">{expandedSection === 'margins' ? '▼' : '►'}</span>
+            </button>
+            
+            {expandedSection === 'margins' && (
+              <div className="accordion-content">
+                <div className="category-grid">
+                  <div>
+                    <label htmlFor="paper-margin-toggle">
+                      Paper Margin:
+                      <span aria-label="paper margin status" className="status">
+                        {hasMargins ? 'on' : 'off'}
+                      </span>
+                    </label>
+                    <label className="switch-toggle outer">
+                      <input
+                        aria-checked={hasMargins}
+                        checked={hasMargins}
+                        onChange={(e) => setHasMargins(e.target.checked)}
+                        aria-label="Paper Margin Button"
+                        id="paper-margin-toggle"
+                        type="checkbox"
+                      />
+                      <div></div>
+                    </label>
+                  </div>
+
+                  <div>
+                    <label htmlFor="paper-line-toggle">
+                      Paper Lines:
+                      <span aria-label="paper line status" className="status">
+                        {hasLines ? 'on' : 'off'}
+                      </span>
+                    </label>
+                    <label className="switch-toggle outer">
+                      <input
+                        aria-checked={hasLines}
+                        checked={hasLines}
+                        onChange={(e) => setHasLines(e.target.checked)}
+                        aria-label="Paper Line Button"
+                        id="paper-line-toggle"
+                        type="checkbox"
+                      />
+                      <div></div>
+                    </label>
+                  </div>
+                  <div className="experimental">
+                    <div className="upload-paper-container">
+                      <label className="block" htmlFor="paper-file">
+                        Upload Paper Image as Background
+                      </label>
+                      <input
+                        accept=".jpg, .jpeg, .png"
+                        type="file"
+                        id="paper-file"
+                        onChange={handlePaperFileChange}
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         </div>
-      </fieldset>
 
-      <fieldset>
-        <legend>Page & Text Options</legend>
-
-        <div className="category-grid">
-          <div className="postfix-input" data-postfix="pt">
-            <label htmlFor="font-size">Font Size</label>
-            <input
-              id="font-size"
-              min="0"
-              step="0.5"
-              value={fontSize}
-              onChange={(e) => setFontSize(e.target.value)}
-              type="number"
-            />
-          </div>
-          <div>
-            <label className="block" htmlFor="ink-color">Ink Color</label>
-            <select 
-              id="ink-color" 
-              value={inkColor} 
-              onChange={(e) => setInkColor(e.target.value)}
-            >
-              <option value="#000f55">Blue</option>
-              <option value="black">Black</option>
-              <option value="#ba3807">Red</option>
-            </select>
-          </div>
-          <div>
-            <label className="block" htmlFor="page-size">Page Size</label>
-            <select 
-              id="page-size" 
-              value={paperSize} 
-              onChange={(e) => setPaperSize(e.target.value)}
-            >
-              <option value="A4">A4</option>
-              <option value="A5">A5</option>
-              <option value="LETTER">Letter</option>
-              <option value="LEGAL">Legal</option>
-            </select>
-          </div>
-          <div>
-            <label className="block" htmlFor="page-effects">Effects</label>
-            <select 
-              id="page-effects" 
-              value={pageEffect} 
-              onChange={(e) => setPageEffect(e.target.value)}
-            >
-              {pageEffects.map((effect) => (
-                <option key={effect.value} value={effect.value}>
-                  {effect.label}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div>
-            <label className="block" htmlFor="resolution">Resolution</label>
-            <select 
-              id="resolution" 
-              value={resolution} 
-              onChange={(e) => setResolution(e.target.value)}
-            >
-              <option value="0.8">Very Low</option>
-              <option value="1">Low</option>
-              <option value="2">Normal</option>
-              <option value="3">High</option>
-              <option value="4">Very High</option>
-            </select>
-          </div>
+        <div className="sidebar-footer">
+          <button
+            type="button"
+            className="generate-image-button"
+            onClick={generateImages}
+          >
+            Generate Image
+          </button>
         </div>
-      </fieldset>
-
-      <fieldset>
-        <legend>Spacing Options</legend>
-
-        <div className="category-grid">
-          <div className="postfix-input" data-postfix="px">
-            <label htmlFor="top-padding">Vertical Position</label>
-            <input 
-              id="top-padding" 
-              min="0" 
-              value={topPadding}
-              onChange={(e) => setTopPadding(e.target.value)}
-              type="number" 
-            />
-          </div>
-          <div className="postfix-input" data-postfix="px">
-            <label htmlFor="word-spacing">Word Spacing</label>
-            <input
-              id="word-spacing"
-              min="0"
-              max="100"
-              value={wordSpacing}
-              onChange={(e) => setWordSpacing(e.target.value)}
-              type="number"
-            />
-          </div>
-          <div className="postfix-input" data-postfix="pt">
-            <label htmlFor="letter-spacing">Letter Spacing</label>
-            <input
-              id="letter-spacing"
-              min="-5"
-              max="40"
-              value={letterSpacing}
-              onChange={(e) => setLetterSpacing(e.target.value)}
-              type="number"
-            />
-          </div>
-        </div>
-      </fieldset>
-
-      <fieldset>
-        <legend>Margin & Line Options</legend>
-
-        <div className="category-grid">
-          <div>
-            <label htmlFor="paper-margin-toggle">
-              Paper Margin:
-              <span aria-label="paper margin status" className="status">
-                {hasMargins ? 'on' : 'off'}
-              </span>
-            </label>
-            <label className="switch-toggle outer">
-              <input
-                aria-checked={hasMargins}
-                checked={hasMargins}
-                onChange={(e) => setHasMargins(e.target.checked)}
-                aria-label="Paper Margin Button"
-                id="paper-margin-toggle"
-                type="checkbox"
-              />
-              <div></div>
-            </label>
-          </div>
-
-          <div>
-            <label htmlFor="paper-line-toggle">
-              Paper Lines:
-              <span aria-label="paper line status" className="status">
-                {hasLines ? 'on' : 'off'}
-              </span>
-            </label>
-            <label className="switch-toggle outer">
-              <input
-                aria-checked={hasLines}
-                checked={hasLines}
-                onChange={(e) => setHasLines(e.target.checked)}
-                aria-label="Paper Line Button"
-                id="paper-line-toggle"
-                type="checkbox"
-              />
-              <div></div>
-            </label>
-          </div>
-          <div className="experimental">
-            <div className="upload-paper-container">
-              <label className="block" htmlFor="paper-file">
-                Upload Paper Image as Background
-              </label>
-              <input
-                accept=".jpg, .jpeg, .png"
-                type="file"
-                id="paper-file"
-                onChange={handlePaperFileChange}
-              />
-            </div>
-          </div>
-        </div>
-      </fieldset>
-
-      <hr
-        style={{
-          border: '0.3px solid var(--elevation-background)',
-          width: '80%',
-        }}
-      />
-
-      <div style={{ padding: '5px 0px 5px 0px' }}>
-        <button
-          type="button"
-          className="generate-image-button"
-          onClick={generateImages}
-        >
-          Generate Image
-        </button>
       </div>
     </div>
   );

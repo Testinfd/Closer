@@ -22,14 +22,14 @@
 - [x] Ensure randomization is consistent across generated pages
 
 ## Phase 4: Preview Text with Examples
-- [ ] **IN PROGRESS** Create example/placeholder text with academic content
-- [ ] Include physics and math equations using KaTeX/MathJax
-- [ ] Design overlay system that disappears on focus/typing
-- [ ] Implement separate example content for main area, side notes, and top notes
-- [ ] Make examples dismissible with a clear button/icon
+- [x] Create example/placeholder text with academic content
+- [x] Include physics and math equations using KaTeX/MathJax
+- [x] Design overlay system that disappears on focus/typing
+- [x] Implement separate example content for main area, side notes, and top notes
+- [x] Make examples dismissible with a clear button/icon
 
 ## Phase 5: Testing & Refinement
-- [ ] Test all features across different browsers
+- [ ] **IN PROGRESS** Test all features across different browsers
 - [ ] Ensure mobile compatibility
 - [ ] Optimize performance for large documents
 - [ ] Fix any bugs or issues identified during testing

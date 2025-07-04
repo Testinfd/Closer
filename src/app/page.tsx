@@ -13,6 +13,7 @@ import 'katex/dist/katex.min.css';
 import { Descendant } from 'slate';
 import RichTextEditor from '../components/RichTextEditor';
 import { slateValueToHtml, htmlToSlateValue } from '../utils/slate-serializer';
+import PlaceholderOverlay from '../components/PlaceholderOverlay';
 
 const PAPER_SIZES: PaperSizes = {
   A4: { width: 210, height: 297 },
@@ -57,14 +58,37 @@ const PAPER_TEXTURES = [
   { value: "/paper-textures/notebook.jpg", label: "Notebook Paper" }
 ];
 
+// Example texts for different sections
+const EXAMPLE_MAIN_TEXT = `<p>The laws of physics help us understand the natural world. For example, Newton's Second Law of Motion can be expressed as:</p>
+<p>$$F = m \\cdot a$$</p>
+<p>Where <em>F</em> is the net force applied, <em>m</em> is the mass of the object, and <em>a</em> is the acceleration.</p>
+<p>Another important equation in physics is Einstein's mass-energy equivalence:</p>
+<p>$$E = mc^2$$</p>
+<p>Where <em>E</em> represents energy, <em>m</em> represents mass, and <em>c</em> represents the speed of light in a vacuum.</p>
+<p>The quadratic formula gives us the solution to equations in the form $ax^2 + bx + c = 0$:</p>
+<p>$$x = \\frac{-b \\pm \\sqrt{b^2 - 4ac}}{2a}$$</p>`;
+
+const EXAMPLE_SIDE_NOTE = `<p>Key formulas:</p>
+<p>Velocity: $v = \\frac{d}{t}$</p>
+<p>Acceleration: $a = \\frac{\\Delta v}{\\Delta t}$</p>
+<p>Work: $W = F \\cdot d$</p>
+<p>Kinetic Energy: $E_k = \\frac{1}{2}mv^2$</p>`;
+
+const EXAMPLE_TOP_NOTE = `<p>Physics Notes - Chapter 4: Forces and Motion</p>`;
+
 export default function Home() {
   // Paper Content State
-  const [text, setText] = useState<string>('Lorem ipsum dolor sit amet, consectetur adipiscing elit. Ut rhoncus dui eget tortor feugiat iaculis. Morbi et dolor in felis viverra efficitur. Integer id laoreet arcu. Mauris turpis nibh, scelerisque sed tristique non, hendrerit in erat. Duis interdum nisl risus, ac ultrices ipsum auctor at.');
+  const [text, setText] = useState<string>(EXAMPLE_MAIN_TEXT);
   
   // External Text Areas
   const [showExternalText, setShowExternalText] = useState<boolean>(false);
-  const [sideText, setSideText] = useState<string>('Side notes can be added here');
-  const [topText, setTopText] = useState<string>('Top notes can be added here');
+  const [sideText, setSideText] = useState<string>(EXAMPLE_SIDE_NOTE);
+  const [topText, setTopText] = useState<string>(EXAMPLE_TOP_NOTE);
+  
+  // Example overlay states
+  const [showMainExample, setShowMainExample] = useState<boolean>(false);
+  const [showSideExample, setShowSideExample] = useState<boolean>(false);
+  const [showTopExample, setShowTopExample] = useState<boolean>(false);
   
   // Paper Styling State
   const [inkColor, setInkColor] = useState<string>('#000f55');
@@ -242,7 +266,15 @@ export default function Home() {
     setIsDark(prev => !prev);
   };
 
-    return (
+  const handleToggleExampleText = () => {
+    setShowMainExample(prev => !prev);
+    if (hasMargins) {
+      setShowSideExample(prev => !prev);
+      setShowTopExample(prev => !prev);
+    }
+  };
+
+  return (
     <main>
       <h1>Convert Text to Handwriting</h1>
       
@@ -276,6 +308,16 @@ export default function Home() {
         paperTextureUrl={getPaperTextureUrl()}
       />
             </div>
+                
+              {/* Example button */}
+              <button 
+                type="button" 
+                className="example-button" 
+                onClick={handleToggleExampleText}
+                title="Toggle example text"
+              >
+                {showMainExample ? "Hide Example" : "Show Example"}
+              </button>
               </div>
               
           <div className="customization-col">
@@ -310,6 +352,47 @@ export default function Home() {
               randomizeHandwriting={randomizeHandwriting}
               toggleRandomizeHandwriting={handleToggleRandomizeHandwriting}
             />
+
+            {/* Example Overlays */}
+            {paperRef.current && (
+              <>
+                {/* Main content example overlay */}
+                {showMainExample && (
+                  <div className="relative-position">
+                    <PlaceholderOverlay
+                      exampleText={EXAMPLE_MAIN_TEXT}
+                      isActive={showMainExample}
+                      onDismiss={() => setShowMainExample(false)}
+                      type="main"
+                    />
+                  </div>
+                )}
+                
+                {/* Side notes example overlay */}
+                {showSideExample && hasMargins && (
+                  <div className="relative-position side-example-container">
+                    <PlaceholderOverlay
+                      exampleText={EXAMPLE_SIDE_NOTE}
+                      isActive={showSideExample}
+                      onDismiss={() => setShowSideExample(false)}
+                      type="side"
+                    />
+                  </div>
+                )}
+                
+                {/* Top notes example overlay */}
+                {showTopExample && hasMargins && (
+                  <div className="relative-position top-example-container">
+                    <PlaceholderOverlay
+                      exampleText={EXAMPLE_TOP_NOTE}
+                      isActive={showTopExample}
+                      onDismiss={() => setShowTopExample(false)}
+                      type="top"
+                    />
+                  </div>
+                )}
+              </>
+            )}
             
             {/* External Text Editors */}
             {showExternalText && (
@@ -319,7 +402,7 @@ export default function Home() {
                   <p>Add content to the side and top margins. These will appear in the margins when you have margins enabled.</p>
                   <div className="side-text-area">
                     <label className="block">Side Notes:</label>
-                    <div ref={sideTextRef} style={{minHeight: '100px', border: '1px solid #ccc', padding: '8px'}}>
+                    <div ref={sideTextRef} style={{minHeight: '100px', border: '1px solid #ccc', padding: '8px', position: 'relative'}}>
                       <RichTextEditor
                         value={htmlToSlateValue(sideText)}
                         onChange={(newValue) => {
@@ -337,7 +420,7 @@ export default function Home() {
                   </div>
                   <div className="top-text-area" style={{marginTop: '15px'}}>
                     <label className="block">Top Notes:</label>
-                    <div ref={topTextRef} style={{minHeight: '100px', border: '1px solid #ccc', padding: '8px'}}>
+                    <div ref={topTextRef} style={{minHeight: '100px', border: '1px solid #ccc', padding: '8px', position: 'relative'}}>
                       <RichTextEditor
                         value={htmlToSlateValue(topText)}
                         onChange={(newValue) => {

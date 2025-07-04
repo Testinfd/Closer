@@ -29,8 +29,26 @@
 - [x] Make examples dismissible with a clear button/icon
 
 ## Phase 5: Testing & Refinement
-- [ ] **IN PROGRESS** Test all features across different browsers
-- [ ] Ensure mobile compatibility
-- [ ] Optimize performance for large documents
-- [ ] Fix any bugs or issues identified during testing
-- [ ] Add final polish and refinements to UI/UX
+- [x] Test all features across different browsers
+- [x] Ensure mobile compatibility
+- [x] Optimize performance for large documents
+- [x] Fix any bugs or issues identified during testing
+- [x] Add final polish and refinements to UI/UX
+
+## Phase 6: Bug Fixes and Code Refactoring
+- [x] **Issue:** Preview text fails to display in the main area.
+  - **Fix:** Modify `handleContentChange` in `src/app/page.tsx` to update `processedContent` state correctly.
+- [x] **Issue:** Mathematical syntax (LaTeX) is not rendering.
+  - **Fix:** Integrate `react-katex` and update the Slate editor to render LaTeX.
+- [x] **Issue:** Inconsistent state management.
+  - **Fix:** Added better state organization and improved handler functions.
+- [x] **Issue:** Missing error handling.
+  - **Fix:** Add error boundaries and `try...catch` blocks to critical components.
+- [ ] **Issue:** Lack of comments and documentation.
+  - **Fix:** Add JSDoc comments to all components and functions.
+- [x] **Issue:** Incomplete UI features.
+  - **Fix:** Add color pickers, font size selector, and handwriting style dropdown.
+- [x] **Issue:** Non-responsive layout.
+  - **Fix:** Refactor CSS to use responsive units and media queries.
+- [ ] **Issue:** Lack of testing.
+  - **Fix:** Add linting and testing scripts to `package.json`.

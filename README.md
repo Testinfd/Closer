@@ -49,6 +49,17 @@ This is a modern React/TypeScript rewrite of the original Text to Handwriting pr
 
 ## Known Issues and Future Work
 
+- **Preview Text Display Failure:** The main preview area fails to render the input text correctly, showing hardcoded formulas instead.
+- **Mathematical Syntax (LaTeX) Not Rendering:** The application does not render mathematical formulas written in LaTeX syntax.
+- **Inconsistent State Management:** State management for customization options is handled by individual `useState` hooks, which can be difficult to manage.
+- **Missing Error Handling:** There is no error handling for font uploads or content generation.
+- **Lack of Comments and Documentation:** The code lacks comments, and there is no documentation for components and utility functions.
+- **Incomplete UI Features:** The customization form is missing several key features, such as color pickers for font and background, and a font size selector.
+- **Non-Responsive Layout:** The application layout is not responsive and does not adapt well to different screen sizes.
+- **Lack of Testing:** There are no scripts for linting or testing.
+
+### Future Work
+
 - **Paper customization**: Implement more paper styles and backgrounds
 - **Margin customization**: Allow adjusting margin sizes and colors
 - **Font management**: Improve custom font handling and provide more built-in options

@@ -4,6 +4,17 @@ import { jsPDF } from 'jspdf';
 let outputImages: HTMLCanvasElement[] = [];
 
 /**
+ * Shows a user-friendly error message
+ */
+const showErrorMessage = (message: string): void => {
+  console.error(message);
+  // If in browser environment, show alert
+  if (typeof window !== 'undefined') {
+    alert(`Error: ${message}`);
+  }
+};
+
+/**
  * Apply paper styles before generating images
  */
 export const applyPaperStyles = (
@@ -18,45 +29,53 @@ export const applyPaperStyles = (
   wordSpacing: string,
   pageEffect: string
 ): void => {
-  if (!paperContentEl || !pageEl) return;
+  if (!paperContentEl || !pageEl) {
+    throw new Error('Paper or content elements not found');
+  }
 
-  // Add CSS styles to paper content
-  paperContentEl.style.color = inkColor;
-  paperContentEl.style.fontFamily = fontName;
-  paperContentEl.style.fontSize = fontSize;
-  paperContentEl.style.lineHeight = lineHeight;
-  paperContentEl.style.letterSpacing = letterSpacing;
-  paperContentEl.style.wordSpacing = wordSpacing;
-  paperContentEl.style.backgroundColor = 'transparent';
-  pageEl.style.filter = '';
-  
-  // Get the overlay element
-  const overlayEl = pageEl.querySelector('.overlay') as HTMLElement;
-  if (!overlayEl) return;
+  try {
+    // Add CSS styles to paper content
+    paperContentEl.style.color = inkColor;
+    paperContentEl.style.fontFamily = fontName;
+    paperContentEl.style.fontSize = fontSize;
+    paperContentEl.style.lineHeight = lineHeight;
+    paperContentEl.style.letterSpacing = letterSpacing;
+    paperContentEl.style.wordSpacing = wordSpacing;
+    paperContentEl.style.backgroundColor = 'transparent';
+    pageEl.style.filter = '';
+    
+    // Get the overlay element
+    const overlayEl = pageEl.querySelector('.overlay') as HTMLElement;
+    if (!overlayEl) {
+      console.warn('Overlay element not found, some effects may not be applied');
+      return;
+    }
 
-  // Reset overlay styles
-  overlayEl.style.background = '';
-  overlayEl.classList.remove('shadows', 'scanner');
+    // Reset overlay styles
+    overlayEl.style.background = '';
+    overlayEl.classList.remove('shadows', 'scanner');
 
-  if (pageEffect === 'shadows') {
-    // Add shadows effect
-    overlayEl.classList.add('shadows');
-    pageEl.style.boxShadow = '12px 12px 24px 0 rgba(0,0,0,0.2)';
-    
-    // Add gradient background similar to legacy implementation
-    overlayEl.style.background = `linear-gradient(${
-      Math.random() * 360
-    }deg, #0006, #0000)`;
-  } else if (pageEffect === 'scanner') {
-    // Add scanner effect
-    overlayEl.classList.add('shadows'); // Use shadows class to make overlay visible
-    paperContentEl.style.backgroundColor = '#fff8';
-    
-    // For scanner effect, use a more targeted gradient angle
-    const gradientAngle = Math.floor(Math.random() * (120 - 50 + 1)) + 50;
-    overlayEl.style.background = `linear-gradient(${gradientAngle}deg, #0008, #0000)`;
-    
-    // Apply higher contrast for scanner effect during image generation
+    if (pageEffect === 'shadows') {
+      // Add shadows effect
+      overlayEl.classList.add('shadows');
+      pageEl.style.boxShadow = '12px 12px 24px 0 rgba(0,0,0,0.2)';
+      
+      // Add gradient background similar to legacy implementation
+      overlayEl.style.background = `linear-gradient(${
+        Math.random() * 360
+      }deg, #0006, #0000)`;
+    } else if (pageEffect === 'scanner') {
+      // Add scanner effect
+      overlayEl.classList.add('shadows'); // Use shadows class to make overlay visible
+      paperContentEl.style.backgroundColor = '#fff8';
+      
+      // For scanner effect, use a more targeted gradient angle
+      const gradientAngle = Math.floor(Math.random() * (120 - 50 + 1)) + 50;
+      overlayEl.style.background = `linear-gradient(${gradientAngle}deg, #0008, #0000)`;
+    }
+  } catch (error) {
+    console.error('Error applying paper styles:', error);
+    throw new Error(`Failed to apply paper styles: ${(error as Error).message}`);
   }
 };
 
@@ -241,37 +260,51 @@ export const convertDIVToImage = async (
     throw new Error('Cannot generate image on server side');
   }
   
-  // Dynamically load html2canvas
-  const html2canvas = await loadHtml2Canvas();
-  if (!html2canvas) {
-    throw new Error('Failed to load html2canvas library');
+  if (!pageEl) {
+    throw new Error('Page element is not defined');
   }
   
-  const options = {
-    scrollX: 0,
-    scrollY: -window.scrollY,
-    scale: resolution,
-    useCORS: true,
-    allowTaint: true,
-    backgroundColor: null,
-    windowWidth: pageEl.scrollWidth,
-    windowHeight: pageEl.scrollHeight
-  };
-
-  // Generate canvas from element
-  const canvas = await html2canvas(pageEl, options);
-
-  // Apply scanner effect if selected
-  if (pageEffect === 'scanner') {
-    const context = canvas.getContext('2d', { willReadFrequently: true });
-    if (context) {
-      const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
-      contrastImage(imageData, 0.55);
-      context.putImageData(imageData, 0, 0);
+  try {
+    // Dynamically load html2canvas
+    const html2canvas = await loadHtml2Canvas();
+    if (!html2canvas) {
+      throw new Error('Failed to load html2canvas library');
     }
-  }
+    
+    const options = {
+      scrollX: 0,
+      scrollY: -window.scrollY,
+      scale: resolution,
+      useCORS: true,
+      allowTaint: true,
+      backgroundColor: null,
+      windowWidth: pageEl.scrollWidth,
+      windowHeight: pageEl.scrollHeight
+    };
 
-  return canvas;
+    // Generate canvas from element
+    const canvas = await html2canvas(pageEl, options);
+
+    // Apply scanner effect if selected
+    if (pageEffect === 'scanner') {
+      const context = canvas.getContext('2d', { willReadFrequently: true });
+      if (context) {
+        try {
+          const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+          contrastImage(imageData, 0.55);
+          context.putImageData(imageData, 0, 0);
+        } catch (error) {
+          console.warn('Failed to apply scanner effect:', error);
+          // Continue without the scanner effect rather than failing
+        }
+      }
+    }
+
+    return canvas;
+  } catch (error) {
+    console.error('Error converting DIV to image:', error);
+    throw new Error(`Failed to generate image: ${(error as Error).message}`);
+  }
 };
 
 /**
@@ -293,14 +326,27 @@ export const generateImages = async (
   sideNotes?: HTMLElement,
   topNotes?: HTMLElement
 ): Promise<HTMLCanvasElement[]> => {
-  if (!pageEl || !paperContentEl) return [];
+  if (!pageEl || !paperContentEl) {
+    showErrorMessage('Page or content element not found');
+    return [];
+  }
+
+  if (!outputContainer) {
+    showErrorMessage('Output container not found');
+    return [];
+  }
 
   let sideNoteClone: HTMLElement | null = null;
   let topNoteClone: HTMLElement | null = null;
+  const initialContent = {
+    paperContent: paperContentEl.innerHTML,
+    leftMargin: '',
+    topMargin: ''
+  };
 
   try {
     // Apply styles before generating images
-    applyPaperStyles(
+    await applyPaperStyles(
       pageEl,
       paperContentEl,
       paperColor,
@@ -313,10 +359,16 @@ export const generateImages = async (
       pageEffect
     );
 
+    // Store margin elements for later restoration
+    const leftMarginEl = pageEl.querySelector('.left-margin') as HTMLElement | null;
+    const topMarginEl = pageEl.querySelector('.top-margin') as HTMLElement | null;
+    
+    if (leftMarginEl) initialContent.leftMargin = leftMarginEl.innerHTML;
+    if (topMarginEl) initialContent.topMargin = topMarginEl.innerHTML;
+
     // Position side notes and top notes in the paper if they exist
-    if (sideNotes) {
-      const leftMarginEl = pageEl.querySelector('.left-margin');
-      if (leftMarginEl) {
+    if (sideNotes && leftMarginEl) {
+      try {
         sideNoteClone = sideNotes.cloneNode(true) as HTMLElement;
         sideNoteClone.style.padding = '10px';
         sideNoteClone.style.boxSizing = 'border-box';
@@ -328,12 +380,13 @@ export const generateImages = async (
           leftMarginEl.removeChild(leftMarginEl.firstChild);
         }
         leftMarginEl.appendChild(sideNoteClone);
+      } catch (error) {
+        console.error('Error setting up side notes:', error);
       }
     }
 
-    if (topNotes) {
-      const topMarginEl = pageEl.querySelector('.top-margin');
-      if (topMarginEl) {
+    if (topNotes && topMarginEl) {
+      try {
         topNoteClone = topNotes.cloneNode(true) as HTMLElement;
         topNoteClone.style.padding = '10px';
         topNoteClone.style.boxSizing = 'border-box';
@@ -344,11 +397,19 @@ export const generateImages = async (
           topMarginEl.removeChild(topMarginEl.firstChild);
         }
         topMarginEl.appendChild(topNoteClone);
+      } catch (error) {
+        console.error('Error setting up top notes:', error);
       }
     }
 
     // Always scroll to top before capturing
-    pageEl.scrollTo(0, 0);
+    if ('scrollTo' in pageEl) {
+      try {
+        pageEl.scrollTo(0, 0);
+      } catch (error) {
+        console.warn('Could not scroll element to top:', error);
+      }
+    }
 
     // Reset output images array
     outputImages = [];
@@ -357,53 +418,100 @@ export const generateImages = async (
     const scrollHeight = paperContentEl.scrollHeight;
     const totalPages = Math.ceil(scrollHeight / clientHeight);
 
+    // Set a reasonable limit to prevent browser crashes
+    const maxPages = 50;
+    if (totalPages > maxPages) {
+      showErrorMessage(`Too many pages (${totalPages}). Maximum allowed is ${maxPages}. Try reducing content or increasing page size.`);
+      return [];
+    }
+
     if (totalPages > 1) {
       // For multiple pages
-      const initialPaperContent = paperContentEl.innerHTML;
-      
-      // Store margin elements for later restoration
-      const leftMarginEl = pageEl.querySelector('.left-margin');
-      const topMarginEl = pageEl.querySelector('.top-margin');
-      let leftMarginContent = leftMarginEl ? leftMarginEl.innerHTML : '';
-      let topMarginContent = topMarginEl ? topMarginEl.innerHTML : '';
-      
       // Process each page
       for (let i = 0; i < totalPages; i++) {
-        // Apply proper styles for multi-page margins
-        if (leftMarginEl) leftMarginEl.innerHTML = leftMarginContent;
-        if (topMarginEl) topMarginEl.innerHTML = topMarginContent;
-        
-        // Generate the canvas
-        const canvas = await convertDIVToImage(pageEl, resolution, pageEffect);
-        outputImages.push(canvas);
+        try {
+          // Apply proper styles for multi-page margins
+          if (leftMarginEl) leftMarginEl.innerHTML = initialContent.leftMargin;
+          if (topMarginEl) topMarginEl.innerHTML = initialContent.topMargin;
+          
+          // Generate the canvas
+          const canvas = await convertDIVToImage(pageEl, resolution, pageEffect);
+          outputImages.push(canvas);
+        } catch (error) {
+          console.error(`Error generating page ${i+1}:`, error);
+          showErrorMessage(`Failed to generate page ${i+1}. ${(error as Error).message}`);
+          // Continue with other pages
+        }
       }
-      
-      // Restore content
-      paperContentEl.innerHTML = initialPaperContent;
-      if (leftMarginEl) leftMarginEl.innerHTML = leftMarginContent;
-      if (topMarginEl) topMarginEl.innerHTML = topMarginContent;
     } else {
       // Single image
-      const canvas = await convertDIVToImage(pageEl, resolution, pageEffect);
-      outputImages.push(canvas);
+      try {
+        const canvas = await convertDIVToImage(pageEl, resolution, pageEffect);
+        outputImages.push(canvas);
+      } catch (error) {
+        console.error('Error generating image:', error);
+        showErrorMessage(`Failed to generate image. ${(error as Error).message}`);
+      }
     }
-  } finally {
-    // Remove clones and styles
-    if (sideNoteClone) sideNoteClone.remove();
-    if (topNoteClone) topNoteClone.remove();
-    removePaperStyles(pageEl, paperContentEl);
-    renderOutput(outputImages, outputContainer);
-  }
 
-  return outputImages;
+    return outputImages;
+  } catch (error) {
+    console.error('Error in image generation process:', error);
+    showErrorMessage(`Image generation failed: ${(error as Error).message}`);
+    return [];
+  } finally {
+    // Ensure cleanup happens even if there are errors
+    try {
+      // Remove clones
+      if (sideNoteClone && sideNoteClone.parentNode) {
+        sideNoteClone.parentNode.removeChild(sideNoteClone);
+      }
+      
+      if (topNoteClone && topNoteClone.parentNode) {
+        topNoteClone.parentNode.removeChild(topNoteClone);
+      }
+      
+      // Restore original content
+      paperContentEl.innerHTML = initialContent.paperContent;
+      
+      const leftMarginEl = pageEl.querySelector('.left-margin') as HTMLElement | null;
+      const topMarginEl = pageEl.querySelector('.top-margin') as HTMLElement | null;
+      
+      if (leftMarginEl && initialContent.leftMargin) {
+        leftMarginEl.innerHTML = initialContent.leftMargin;
+      }
+      
+      if (topMarginEl && initialContent.topMargin) {
+        topMarginEl.innerHTML = initialContent.topMargin;
+      }
+      
+      // Remove applied styles
+      removePaperStyles(pageEl, paperContentEl);
+      
+      // Render output (even if empty)
+      renderOutput(outputImages, outputContainer);
+    } catch (cleanupError) {
+      console.error('Error during cleanup:', cleanupError);
+    }
+  }
 };
 
 /**
  * Delete all generated images
  */
 export const deleteAllImages = (outputContainer: HTMLElement): void => {
-  outputImages = [];
-  renderOutput(outputImages, outputContainer);
+  if (!outputContainer) {
+    showErrorMessage('Output container not found');
+    return;
+  }
+  
+  try {
+    outputImages = [];
+    renderOutput(outputImages, outputContainer);
+  } catch (error) {
+    console.error('Error deleting images:', error);
+    showErrorMessage(`Failed to delete images: ${(error as Error).message}`);
+  }
 };
 
 /**
@@ -437,30 +545,35 @@ export const moveRight = (index: number, outputContainer: HTMLElement): void => 
  */
 export const downloadAsPDF = (paperSize = {width: 210, height: 297}): void => {
   if (outputImages.length === 0) {
-    alert('No images to download');
+    showErrorMessage('No images to download');
     return;
   }
   
-  const pdf = new jsPDF({
-    orientation: 'portrait',
-    unit: 'mm',
-    format: [paperSize.width, paperSize.height]
-  });
-  
-  outputImages.forEach((canvas, index) => {
-    if (index > 0) {
-      pdf.addPage([paperSize.width, paperSize.height]);
-    }
+  try {
+    const pdf = new jsPDF({
+      orientation: 'portrait',
+      unit: 'mm',
+      format: [paperSize.width, paperSize.height]
+    });
     
-    const imgData = canvas.toDataURL('image/jpeg', 0.95);
+    outputImages.forEach((canvas, index) => {
+      if (index > 0) {
+        pdf.addPage([paperSize.width, paperSize.height]);
+      }
+      
+      const imgData = canvas.toDataURL('image/jpeg', 0.95);
+      
+      const width = pdf.internal.pageSize.getWidth();
+      const height = pdf.internal.pageSize.getHeight();
+      
+      pdf.addImage(imgData, 'JPEG', 25, 50, width - 50, height - 80);
+    });
     
-    const width = pdf.internal.pageSize.getWidth();
-    const height = pdf.internal.pageSize.getHeight();
-    
-    pdf.addImage(imgData, 'JPEG', 25, 50, width - 50, height - 80);
-  });
-  
-  pdf.save(`handwriting.pdf`);
+    pdf.save(`handwriting.pdf`);
+  } catch (error) {
+    console.error('Error downloading PDF:', error);
+    showErrorMessage(`Failed to generate PDF: ${(error as Error).message}`);
+  }
 };
 
 /**
@@ -468,16 +581,22 @@ export const downloadAsPDF = (paperSize = {width: 210, height: 297}): void => {
  */
 export const downloadImageAsPNG = (canvas: HTMLCanvasElement, filename: string): void => {
   if (!canvas) {
-    alert('No image to download');
+    showErrorMessage('No image to download');
     return;
   }
-  const dataURL = canvas.toDataURL('image/png');
-  const link = document.createElement('a');
-  link.href = dataURL;
-  link.download = filename;
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
+  
+  try {
+    const dataURL = canvas.toDataURL('image/png');
+    const link = document.createElement('a');
+    link.href = dataURL;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  } catch (error) {
+    console.error('Error downloading PNG:', error);
+    showErrorMessage(`Failed to download image: ${(error as Error).message}`);
+  }
 };
 
 /**

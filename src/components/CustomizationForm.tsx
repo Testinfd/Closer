@@ -69,6 +69,17 @@ const CustomizationForm: React.FC<CustomizationFormProps> = ({
   const [collapsed, setCollapsed] = useState(false);
   const [expandedSection, setExpandedSection] = useState<string | null>('handwriting');
 
+  // Predefined ink colors for quick selection
+  const inkColorPresets = [
+    { color: "#000f55", name: "Blue" },
+    { color: "#000000", name: "Black" },
+    { color: "#ba3807", name: "Red" },
+    { color: "#0b5394", name: "Navy Blue" },
+    { color: "#38761d", name: "Green" },
+    { color: "#351c75", name: "Purple" },
+    { color: "#741b47", name: "Burgundy" }
+  ];
+
   const handleFontFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -130,11 +141,13 @@ const CustomizationForm: React.FC<CustomizationFormProps> = ({
       <div className="sidebar-content">
         <div className="sidebar-header">
           <h2>Customizations</h2>
-          <p className="sidebar-note">
-            <em>
-              Note: Some changes may reflect only in the generated image
-            </em>
-          </p>
+          <button 
+            type="button"
+            className="generate-image-button"
+            onClick={generateImages}
+          >
+            Generate Image
+          </button>
         </div>
         
         <div className="sidebar-accordion">
@@ -144,57 +157,51 @@ const CustomizationForm: React.FC<CustomizationFormProps> = ({
               onClick={() => toggleSection('handwriting')}
               aria-expanded={expandedSection === 'handwriting'}
             >
-              <span>Handwriting Options</span>
-              <span className="accordion-icon">{expandedSection === 'handwriting' ? '▼' : '►'}</span>
+              <span>Handwriting Style</span>
+              <span className="accordion-icon">{expandedSection === 'handwriting' ? '▼' : '▶'}</span>
             </button>
             
             {expandedSection === 'handwriting' && (
               <div className="accordion-content">
-                <div className="category-grid">
-                  <div>
-                    <label className="block" htmlFor="handwriting-font">
-                      Handwriting Font
-                    </label>
-                    <select 
-                      id="handwriting-font"
-                      value={fontFamily}
-                      onChange={(e) => setFontFamily(e.target.value)}
-                    >
-                      {handwritingFonts.map((font) => (
-                        <option 
-                          key={font.value}
-                          value={font.value}
-                          style={font.style}
-                        >
-                          {font.label}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                  <div className="upload-handwriting-container">
-                    <label className="block" htmlFor="font-file">
-                      Upload your handwriting font <small>(Beta)</small>&nbsp;
-                      <a
-                        style={{ fontSize: '1.1rem' }}
-                        title="How to add your own handwriting"
-                        href="#how-to-add-handwriting"
+                <div className="form-group">
+                  <label className="block" htmlFor="handwriting-font">
+                    Font Style
+                  </label>
+                  <select 
+                    id="handwriting-font"
+                    value={fontFamily}
+                    onChange={(e) => setFontFamily(e.target.value)}
+                    className="full-width"
+                  >
+                    {handwritingFonts.map((font) => (
+                      <option 
+                        key={font.value}
+                        value={font.value}
+                        style={font.style}
                       >
-                        &#9432;
-                      </a>
-                    </label>
-                    <input 
-                      accept=".ttf, .otf" 
-                      type="file" 
-                      id="font-file"
-                      onChange={handleFontFileChange}
-                    />
-                  </div>
-                  <div>
+                        {font.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                
+                <div className="form-group">
+                  <label className="block" htmlFor="font-file">
+                    Upload Font <span className="badge">Beta</span>
+                  </label>
+                  <input 
+                    accept=".ttf, .otf" 
+                    type="file" 
+                    id="font-file"
+                    onChange={handleFontFileChange}
+                    className="file-input"
+                  />
+                </div>
+                
+                <div className="form-group">
+                  <div className="flex-between">
                     <label htmlFor="randomize-toggle">
-                      Randomize Handwriting:
-                      <span aria-label="randomization status" className="status">
-                        {randomizeHandwriting ? 'on' : 'off'}
-                      </span>
+                      Randomize Handwriting
                     </label>
                     <label className="switch-toggle outer">
                       <input
@@ -207,11 +214,85 @@ const CustomizationForm: React.FC<CustomizationFormProps> = ({
                       />
                       <div></div>
                     </label>
-                    <p style={{ fontSize: '0.8rem' }}>
-                      <em>
-                        Adds subtle variations to letters and spacing
-                      </em>
-                    </p>
+                  </div>
+                  <p className="helper-text">
+                    Adds subtle variations to letters and spacing
+                  </p>
+                </div>
+              </div>
+            )}
+          </div>
+          
+          <div className={`accordion-item ${expandedSection === 'appearance' ? 'expanded' : ''}`}>
+            <button 
+              className="accordion-header" 
+              onClick={() => toggleSection('appearance')}
+              aria-expanded={expandedSection === 'appearance'}
+            >
+              <span>Ink & Appearance</span>
+              <span className="accordion-icon">{expandedSection === 'appearance' ? '▼' : '▶'}</span>
+            </button>
+            
+            {expandedSection === 'appearance' && (
+              <div className="accordion-content">
+                <div className="form-group">
+                  <label className="block">Ink Color</label>
+                  <div className="color-picker-container">
+                    <input 
+                      type="color" 
+                      value={inkColor}
+                      onChange={(e) => setInkColor(e.target.value)}
+                      className="color-picker"
+                      aria-label="Select ink color"
+                    />
+                    <input 
+                      type="text" 
+                      value={inkColor}
+                      onChange={(e) => setInkColor(e.target.value)}
+                      className="color-text-input"
+                      aria-label="Ink color hex value"
+                    />
+                  </div>
+                  <div className="color-presets">
+                    {inkColorPresets.map(preset => (
+                      <button
+                        key={preset.color}
+                        type="button"
+                        className={`color-preset ${inkColor === preset.color ? 'active' : ''}`}
+                        style={{ backgroundColor: preset.color }}
+                        onClick={() => setInkColor(preset.color)}
+                        title={preset.name}
+                        aria-label={`Set ink color to ${preset.name}`}
+                      />
+                    ))}
+                  </div>
+                </div>
+                
+                <div className="form-group">
+                  <label htmlFor="font-size">Font Size</label>
+                  <div className="input-with-controls">
+                    <button 
+                      type="button"
+                      className="control-button" 
+                      onClick={() => setFontSize(Math.max(1, parseFloat(fontSize) - 0.5).toString())}
+                      aria-label="Decrease font size"
+                    >−</button>
+                    <input
+                      id="font-size"
+                      min="1"
+                      step="0.5"
+                      value={fontSize}
+                      onChange={(e) => setFontSize(e.target.value)}
+                      type="number"
+                      className="centered-input"
+                    />
+                    <button 
+                      type="button"
+                      className="control-button" 
+                      onClick={() => setFontSize((parseFloat(fontSize) + 0.5).toString())}
+                      aria-label="Increase font size"
+                    >+</button>
+                    <span className="input-suffix">pt</span>
                   </div>
                 </div>
               </div>
@@ -224,77 +305,70 @@ const CustomizationForm: React.FC<CustomizationFormProps> = ({
               onClick={() => toggleSection('page')}
               aria-expanded={expandedSection === 'page'}
             >
-              <span>Page & Text Options</span>
-              <span className="accordion-icon">{expandedSection === 'page' ? '▼' : '►'}</span>
+              <span>Page Settings</span>
+              <span className="accordion-icon">{expandedSection === 'page' ? '▼' : '▶'}</span>
             </button>
             
             {expandedSection === 'page' && (
               <div className="accordion-content">
-                <div className="category-grid">
-                  <div className="postfix-input" data-postfix="pt">
-                    <label htmlFor="font-size">Font Size</label>
-                    <input
-                      id="font-size"
-                      min="0"
-                      step="0.5"
-                      value={fontSize}
-                      onChange={(e) => setFontSize(e.target.value)}
-                      type="number"
-                    />
-                  </div>
-                  <div>
-                    <label className="block" htmlFor="ink-color">Ink Color</label>
-                    <select 
-                      id="ink-color" 
-                      value={inkColor} 
-                      onChange={(e) => setInkColor(e.target.value)}
-                    >
-                      <option value="#000f55">Blue</option>
-                      <option value="black">Black</option>
-                      <option value="#ba3807">Red</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block" htmlFor="page-size">Page Size</label>
-                    <select 
-                      id="page-size" 
-                      value={paperSize} 
-                      onChange={(e) => setPaperSize(e.target.value)}
-                    >
-                      <option value="A4">A4</option>
-                      <option value="A5">A5</option>
-                      <option value="LETTER">Letter</option>
-                      <option value="LEGAL">Legal</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block" htmlFor="page-effects">Effects</label>
-                    <select 
-                      id="page-effects" 
-                      value={pageEffect} 
-                      onChange={(e) => setPageEffect(e.target.value)}
-                    >
-                      {pageEffects.map((effect) => (
-                        <option key={effect.value} value={effect.value}>
-                          {effect.label}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block" htmlFor="resolution">Resolution</label>
-                    <select 
-                      id="resolution" 
-                      value={resolution} 
-                      onChange={(e) => setResolution(e.target.value)}
-                    >
-                      <option value="0.8">Very Low</option>
-                      <option value="1">Low</option>
-                      <option value="2">Normal</option>
-                      <option value="3">High</option>
-                      <option value="4">Very High</option>
-                    </select>
-                  </div>
+                <div className="form-group">
+                  <label className="block" htmlFor="page-size">Page Size</label>
+                  <select 
+                    id="page-size" 
+                    value={paperSize} 
+                    onChange={(e) => setPaperSize(e.target.value)}
+                    className="full-width"
+                  >
+                    <option value="A4">A4</option>
+                    <option value="A5">A5</option>
+                    <option value="LETTER">Letter</option>
+                    <option value="LEGAL">Legal</option>
+                  </select>
+                </div>
+                
+                <div className="form-group">
+                  <label className="block" htmlFor="page-effects">Effects</label>
+                  <select 
+                    id="page-effects" 
+                    value={pageEffect} 
+                    onChange={(e) => setPageEffect(e.target.value)}
+                    className="full-width"
+                  >
+                    {pageEffects.map((effect) => (
+                      <option key={effect.value} value={effect.value}>
+                        {effect.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                
+                <div className="form-group">
+                  <label className="block" htmlFor="resolution">Resolution</label>
+                  <select 
+                    id="resolution" 
+                    value={resolution} 
+                    onChange={(e) => setResolution(e.target.value)}
+                    className="full-width"
+                  >
+                    <option value="0.8">Very Low</option>
+                    <option value="1">Low</option>
+                    <option value="2">Normal</option>
+                    <option value="3">High</option>
+                    <option value="4">Very High</option>
+                  </select>
+                </div>
+                
+                <div className="form-group">
+                  <label className="block" htmlFor="paper-file">
+                    Custom Paper Background
+                  </label>
+                  <input
+                    accept=".jpg, .jpeg, .png"
+                    type="file"
+                    id="paper-file"
+                    onChange={handlePaperFileChange}
+                    className="file-input"
+                  />
                 </div>
               </div>
             )}
@@ -306,44 +380,56 @@ const CustomizationForm: React.FC<CustomizationFormProps> = ({
               onClick={() => toggleSection('spacing')}
               aria-expanded={expandedSection === 'spacing'}
             >
-              <span>Spacing Options</span>
-              <span className="accordion-icon">{expandedSection === 'spacing' ? '▼' : '►'}</span>
+              <span>Spacing & Layout</span>
+              <span className="accordion-icon">{expandedSection === 'spacing' ? '▼' : '▶'}</span>
             </button>
             
             {expandedSection === 'spacing' && (
               <div className="accordion-content">
-                <div className="category-grid">
-                  <div className="postfix-input" data-postfix="px">
+                <div className="form-grid">
+                  <div className="form-group">
                     <label htmlFor="top-padding">Vertical Position</label>
-                    <input 
-                      id="top-padding" 
-                      min="0" 
-                      value={topPadding}
-                      onChange={(e) => setTopPadding(e.target.value)}
-                      type="number" 
-                    />
+                    <div className="input-with-controls">
+                      <input 
+                        id="top-padding" 
+                        min="0" 
+                        value={topPadding}
+                        onChange={(e) => setTopPadding(e.target.value)}
+                        type="number" 
+                        className="centered-input"
+                      />
+                      <span className="input-suffix">px</span>
+                    </div>
                   </div>
-                  <div className="postfix-input" data-postfix="px">
+                  <div className="form-group">
                     <label htmlFor="word-spacing">Word Spacing</label>
-                    <input
-                      id="word-spacing"
-                      min="0"
-                      max="100"
-                      value={wordSpacing}
-                      onChange={(e) => setWordSpacing(e.target.value)}
-                      type="number"
-                    />
+                    <div className="input-with-controls">
+                      <input
+                        id="word-spacing"
+                        min="0"
+                        max="100"
+                        value={wordSpacing}
+                        onChange={(e) => setWordSpacing(e.target.value)}
+                        type="number"
+                        className="centered-input"
+                      />
+                      <span className="input-suffix">px</span>
+                    </div>
                   </div>
-                  <div className="postfix-input" data-postfix="pt">
+                  <div className="form-group">
                     <label htmlFor="letter-spacing">Letter Spacing</label>
-                    <input
-                      id="letter-spacing"
-                      min="-5"
-                      max="40"
-                      value={letterSpacing}
-                      onChange={(e) => setLetterSpacing(e.target.value)}
-                      type="number"
-                    />
+                    <div className="input-with-controls">
+                      <input
+                        id="letter-spacing"
+                        min="-5"
+                        max="40"
+                        value={letterSpacing}
+                        onChange={(e) => setLetterSpacing(e.target.value)}
+                        type="number"
+                        className="centered-input"
+                      />
+                      <span className="input-suffix">px</span>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -356,62 +442,16 @@ const CustomizationForm: React.FC<CustomizationFormProps> = ({
               onClick={() => toggleSection('notes')}
               aria-expanded={expandedSection === 'notes'}
             >
-              <span>Side & Top Notes Options</span>
-              <span className="accordion-icon">{expandedSection === 'notes' ? '▼' : '►'}</span>
+              <span>Notes & Margins</span>
+              <span className="accordion-icon">{expandedSection === 'notes' ? '▼' : '▶'}</span>
             </button>
             
             {expandedSection === 'notes' && (
               <div className="accordion-content">
-                <div className="category-grid">
-                  <div>
-                    <label htmlFor="side-notes-toggle">
-                      Show Side & Top Notes:
-                      <span aria-label="side notes status" className="status">
-                        {hasMargins ? (sideNotesVisible ? 'visible' : 'hidden') : 'disabled'}
-                      </span>
-                    </label>
-                    <label className="switch-toggle outer">
-                      <input
-                        disabled={!hasMargins}
-                        aria-checked={sideNotesVisible}
-                        checked={sideNotesVisible}
-                        onChange={toggleSideNotes}
-                        aria-label="Side Notes Toggle Button"
-                        id="side-notes-toggle"
-                        type="checkbox"
-                      />
-                      <div></div>
-                    </label>
-                    <p style={{ fontSize: '0.8rem' }}>
-                      <em>
-                        Note: Enable margins to use side and top notes
-                      </em>
-                    </p>
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-          
-          <div className={`accordion-item ${expandedSection === 'margins' ? 'expanded' : ''}`}>
-            <button 
-              className="accordion-header" 
-              onClick={() => toggleSection('margins')}
-              aria-expanded={expandedSection === 'margins'}
-            >
-              <span>Margin & Line Options</span>
-              <span className="accordion-icon">{expandedSection === 'margins' ? '▼' : '►'}</span>
-            </button>
-            
-            {expandedSection === 'margins' && (
-              <div className="accordion-content">
-                <div className="category-grid">
-                  <div>
+                <div className="form-group">
+                  <div className="flex-between">
                     <label htmlFor="paper-margin-toggle">
-                      Paper Margin:
-                      <span aria-label="paper margin status" className="status">
-                        {hasMargins ? 'on' : 'off'}
-                      </span>
+                      Paper Margins
                     </label>
                     <label className="switch-toggle outer">
                       <input
@@ -425,13 +465,37 @@ const CustomizationForm: React.FC<CustomizationFormProps> = ({
                       <div></div>
                     </label>
                   </div>
+                </div>
 
-                  <div>
+                <div className="form-group">
+                  <div className="flex-between">
+                    <label htmlFor="side-notes-toggle">
+                      Show Side & Top Notes
+                    </label>
+                    <label className="switch-toggle outer">
+                      <input
+                        disabled={!hasMargins}
+                        aria-checked={sideNotesVisible}
+                        checked={sideNotesVisible}
+                        onChange={toggleSideNotes}
+                        aria-label="Side Notes Toggle Button"
+                        id="side-notes-toggle"
+                        type="checkbox"
+                      />
+                      <div></div>
+                    </label>
+                  </div>
+                  {!hasMargins && (
+                    <p className="helper-text alert">
+                      Enable margins to use notes
+                    </p>
+                  )}
+                </div>
+
+                <div className="form-group">
+                  <div className="flex-between">
                     <label htmlFor="paper-line-toggle">
-                      Paper Lines:
-                      <span aria-label="paper line status" className="status">
-                        {hasLines ? 'on' : 'off'}
-                      </span>
+                      Paper Lines
                     </label>
                     <label className="switch-toggle outer">
                       <input
@@ -445,33 +509,10 @@ const CustomizationForm: React.FC<CustomizationFormProps> = ({
                       <div></div>
                     </label>
                   </div>
-                  <div className="experimental">
-                    <div className="upload-paper-container">
-                      <label className="block" htmlFor="paper-file">
-                        Upload Paper Image as Background
-                      </label>
-                      <input
-                        accept=".jpg, .jpeg, .png"
-                        type="file"
-                        id="paper-file"
-                        onChange={handlePaperFileChange}
-                      />
-                    </div>
-                  </div>
                 </div>
               </div>
             )}
           </div>
-        </div>
-
-        <div className="sidebar-footer">
-          <button
-            type="button"
-            className="generate-image-button"
-            onClick={generateImages}
-          >
-            Generate Image
-          </button>
         </div>
       </div>
     </div>

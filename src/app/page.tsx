@@ -14,6 +14,7 @@ import { Descendant } from 'slate';
 import RichTextEditor from '../components/RichTextEditor';
 import { slateValueToHtml, htmlToSlateValue } from '../utils/slate-serializer';
 import PlaceholderOverlay from '../components/PlaceholderOverlay';
+import ErrorBoundary from '../components/ErrorBoundary';
 
 const PAPER_SIZES: PaperSizes = {
   A4: { width: 210, height: 297 },
@@ -231,6 +232,14 @@ export default function Home() {
     setText(sanitizeRichTextContent(newHtml, true));
   };
 
+  const handleSideTextChange = (newHtml: string) => {
+    setSideText(sanitizeRichTextContent(newHtml, true));
+  };
+
+  const handleTopTextChange = (newHtml: string) => {
+    setTopText(sanitizeRichTextContent(newHtml, true));
+  };
+
   const handleFontSizeChange = (value: string) => {
     const numValue = parseInt(value, 10);
     if (numValue > 30) {
@@ -275,212 +284,217 @@ export default function Home() {
   };
 
   return (
-    <main>
-      <h1>Convert Text to Handwriting</h1>
-      
-      {isGenerating && <LoadingSpinner />}
+    <ErrorBoundary>
+      <main className="app-container">
+        <h1 className="app-title">Text to Handwriting</h1>
+        
+        {isGenerating && <LoadingSpinner />}
 
-      <section className="generate-image-section">
-        <div className="display-flex responsive-flex">
-          <div className="page-container">
-            <div className="page-container-super shadow">
-      <EnhancedPaper
-        paperRef={paperRef}
-        initialValue={text}
-        onContentChange={handleContentChange}
-        sideText={sideText}
-        onSideTextChange={setSideText}
-        topText={topText}
-        onTopTextChange={setTopText}
-        inkColor={inkColor}
-        paperColor={paperColor}
-                shadowColor="#0005"
-        hasLines={hasLines}
-        hasMargins={hasMargins}
-        pageEffect={pageEffect}
-        fontFamily={fontFamily}
-        fontSize={`${fontSize}pt`}
-        letterSpacing={`${letterSpacing}px`}
-        wordSpacing={`${wordSpacing}px`}
-        topPadding={`${topPadding}px`}
-        randomizeHandwriting={randomizeHandwriting}
-        realisticInkEffects={realisticEffects}
-        paperTextureUrl={getPaperTextureUrl()}
-      />
-            </div>
+        <section className="app-content">
+          <div className="app-layout">
+            <div className="preview-container">
+              <div className="paper-wrapper">
+                <EnhancedPaper
+                  paperRef={paperRef}
+                  initialValue={text}
+                  onContentChange={handleContentChange}
+                  sideText={sideText}
+                  onSideTextChange={handleSideTextChange}
+                  topText={topText}
+                  onTopTextChange={handleTopTextChange}
+                  inkColor={inkColor}
+                  paperColor={paperColor}
+                  shadowColor="#0005"
+                  hasLines={hasLines}
+                  hasMargins={hasMargins}
+                  pageEffect={pageEffect}
+                  fontFamily={fontFamily}
+                  fontSize={`${fontSize}pt`}
+                  letterSpacing={`${letterSpacing}px`}
+                  wordSpacing={`${wordSpacing}px`}
+                  topPadding={`${topPadding}px`}
+                  randomizeHandwriting={randomizeHandwriting}
+                  realisticInkEffects={realisticEffects}
+                  paperTextureUrl={getPaperTextureUrl()}
+                />
                 
-              {/* Example button */}
-              <button 
-                type="button" 
-                className="example-button" 
-                onClick={handleToggleExampleText}
-                title="Toggle example text"
-              >
-                {showMainExample ? "Hide Example" : "Show Example"}
-              </button>
+                <div className="paper-actions">
+                  <button 
+                    type="button" 
+                    className="example-button" 
+                    onClick={handleToggleExampleText}
+                    title="Toggle example text"
+                  >
+                    {showMainExample ? "Hide Example" : "Show Example"}
+                  </button>
+                  
+                  <button 
+                    type="button" 
+                    className="draw-button" 
+                    onClick={() => setDrawingCanvasVisible(true)}
+                  >
+                    Add Drawing
+                  </button>
+                </div>
               </div>
               
-          <div className="customization-col">
-            <CustomizationForm 
-              fontFamily={fontFamily}
-              setFontFamily={setFontFamily}
-              fontSize={fontSize}
-              setFontSize={handleFontSizeChange}
-              letterSpacing={letterSpacing}
-              setLetterSpacing={handleLetterSpacingChange}
-              wordSpacing={wordSpacing}
-              setWordSpacing={handleWordSpacingChange}
-              topPadding={topPadding}
-              setTopPadding={handleTopPaddingChange}
-              inkColor={inkColor}
-              setInkColor={setInkColor}
-              generateImages={handleGenerateImages}
-              hasLines={hasLines}
-              setHasLines={setHasLines}
-              hasMargins={hasMargins}
-              setHasMargins={setHasMargins}
-              pageEffect={pageEffect}
-              setPageEffect={setPageEffect}
-              resolution={resolution}
-              setResolution={setResolution}
-              paperSize={paperSize}
-              setPaperSize={setPaperSize}
-              handwritingFonts={HANDWRITING_FONTS}
-              pageEffects={PAGE_EFFECTS}
-              sideNotesVisible={showExternalText}
-              toggleSideNotes={handleToggleExternalText}
-              randomizeHandwriting={randomizeHandwriting}
-              toggleRandomizeHandwriting={handleToggleRandomizeHandwriting}
-            />
-
-            {/* Example Overlays */}
-            {paperRef.current && (
-              <>
-                {/* Main content example overlay */}
-                {showMainExample && (
-                  <div className="relative-position">
-                    <PlaceholderOverlay
-                      exampleText={EXAMPLE_MAIN_TEXT}
-                      isActive={showMainExample}
-                      onDismiss={() => setShowMainExample(false)}
-                      type="main"
-                    />
-                  </div>
-                )}
-                
-                {/* Side notes example overlay */}
-                {showSideExample && hasMargins && (
-                  <div className="relative-position side-example-container">
-                    <PlaceholderOverlay
-                      exampleText={EXAMPLE_SIDE_NOTE}
-                      isActive={showSideExample}
-                      onDismiss={() => setShowSideExample(false)}
-                      type="side"
-                    />
-                  </div>
-                )}
-                
-                {/* Top notes example overlay */}
-                {showTopExample && hasMargins && (
-                  <div className="relative-position top-example-container">
-                    <PlaceholderOverlay
-                      exampleText={EXAMPLE_TOP_NOTE}
-                      isActive={showTopExample}
-                      onDismiss={() => setShowTopExample(false)}
-                      type="top"
-                    />
-                  </div>
-                )}
-              </>
-            )}
-            
-            {/* External Text Editors */}
-            {showExternalText && (
-              <div className="external-text-container" style={{marginTop: '20px'}}>
-              <fieldset>
-                  <legend>Notes Configuration</legend>
-                  <p>Add content to the side and top margins. These will appear in the margins when you have margins enabled.</p>
-                  <div className="side-text-area">
-                    <label className="block">Side Notes:</label>
-                    <div ref={sideTextRef} style={{minHeight: '100px', border: '1px solid #ccc', padding: '8px', position: 'relative'}}>
-                      <RichTextEditor
-                        value={htmlToSlateValue(sideText)}
-                        onChange={(newValue) => {
-                          const html = slateValueToHtml(newValue);
-                          setSideText(sanitizeRichTextContent(html, true));
-                        }}
-                        inkColor={inkColor}
-                        fontFamily={fontFamily}
-                        fontSize={fontSize}
-                        letterSpacing={letterSpacing}
-                        wordSpacing={wordSpacing}
-                        className="side-note-preview"
-                      />
-                </div>
-                  </div>
-                  <div className="top-text-area" style={{marginTop: '15px'}}>
-                    <label className="block">Top Notes:</label>
-                    <div ref={topTextRef} style={{minHeight: '100px', border: '1px solid #ccc', padding: '8px', position: 'relative'}}>
-                      <RichTextEditor
-                        value={htmlToSlateValue(topText)}
-                        onChange={(newValue) => {
-                          const html = slateValueToHtml(newValue);
-                          setTopText(sanitizeRichTextContent(html, true));
-                        }}
-                        inkColor={inkColor}
-                        fontFamily={fontFamily}
-                        fontSize={fontSize}
-                        letterSpacing={letterSpacing}
-                        wordSpacing={wordSpacing}
-                        className="top-note-preview"
-                    />
+              <div className="output-container">
+                <div id="output" className="output">
+                  <div className="output-image-controls" style={{display: 'none'}}>
+                    <button id="delete-all-button" onClick={handleDeleteAll}>Delete All</button>
+                    <button id="download-as-pdf-button" onClick={handleDownloadPDF}>Download as PDF</button>
                   </div>
                 </div>
-              </fieldset>
-                  </div>
-            )}
-            
-            <div className="output-container">
-              <div id="output" className="output">
-                <div className="output-image-controls" style={{display: 'none'}}>
-                  <button id="delete-all-button" onClick={handleDeleteAll}>Delete All</button>
-                  <button id="download-as-pdf-button" onClick={handleDownloadPDF}>Download as PDF</button>
-                </div>
-                  </div>
+              </div>
             </div>
+                
+            <div className="controls-container">
+              <CustomizationForm 
+                fontFamily={fontFamily}
+                setFontFamily={setFontFamily}
+                fontSize={fontSize}
+                setFontSize={handleFontSizeChange}
+                letterSpacing={letterSpacing}
+                setLetterSpacing={handleLetterSpacingChange}
+                wordSpacing={wordSpacing}
+                setWordSpacing={handleWordSpacingChange}
+                topPadding={topPadding}
+                setTopPadding={handleTopPaddingChange}
+                inkColor={inkColor}
+                setInkColor={setInkColor}
+                generateImages={handleGenerateImages}
+                hasLines={hasLines}
+                setHasLines={setHasLines}
+                hasMargins={hasMargins}
+                setHasMargins={setHasMargins}
+                pageEffect={pageEffect}
+                setPageEffect={setPageEffect}
+                resolution={resolution}
+                setResolution={setResolution}
+                paperSize={paperSize}
+                setPaperSize={setPaperSize}
+                handwritingFonts={HANDWRITING_FONTS}
+                pageEffects={PAGE_EFFECTS}
+                sideNotesVisible={showExternalText}
+                toggleSideNotes={handleToggleExternalText}
+                randomizeHandwriting={randomizeHandwriting}
+                toggleRandomizeHandwriting={handleToggleRandomizeHandwriting}
+              />
 
-            {/* Font upload component */}
-            <FontUploader onFontLoaded={(fontName) => setFontFamily(fontName)} />
+              {/* Example Overlays */}
+              {paperRef.current && (
+                <>
+                  {/* Main content example overlay */}
+                  {showMainExample && (
+                    <div className="relative-position">
+                      <PlaceholderOverlay
+                        exampleText={EXAMPLE_MAIN_TEXT}
+                        isActive={showMainExample}
+                        onDismiss={() => setShowMainExample(false)}
+                        type="main"
+                      />
+                    </div>
+                  )}
+                  
+                  {/* Side notes example overlay */}
+                  {showSideExample && hasMargins && (
+                    <div className="relative-position side-example-container">
+                      <PlaceholderOverlay
+                        exampleText={EXAMPLE_SIDE_NOTE}
+                        isActive={showSideExample}
+                        onDismiss={() => setShowSideExample(false)}
+                        type="side"
+                      />
+                    </div>
+                  )}
+                  
+                  {/* Top notes example overlay */}
+                  {showTopExample && hasMargins && (
+                    <div className="relative-position top-example-container">
+                      <PlaceholderOverlay
+                        exampleText={EXAMPLE_TOP_NOTE}
+                        isActive={showTopExample}
+                        onDismiss={() => setShowTopExample(false)}
+                        type="top"
+                      />
+                    </div>
+                  )}
+                </>
+              )}
+              
+              {/* External Text Editors */}
+              {showExternalText && (
+                <div className="notes-editor-container">
+                  <fieldset>
+                    <legend>Notes Configuration</legend>
+                    <p>Add content to the side and top margins. These will appear in the margins when you have margins enabled.</p>
+                    
+                    <div className="side-text-area">
+                      <label className="block">Side Notes:</label>
+                      <div ref={sideTextRef} className="editor-area">
+                        <RichTextEditor
+                          value={htmlToSlateValue(sideText)}
+                          onChange={(newValue) => {
+                            const html = slateValueToHtml(newValue);
+                            handleSideTextChange(html);
+                          }}
+                          inkColor={inkColor}
+                          fontFamily={fontFamily}
+                          fontSize={fontSize}
+                          letterSpacing={letterSpacing}
+                          wordSpacing={wordSpacing}
+                          className="side-note-preview"
+                        />
+                      </div>
+                    </div>
+                    
+                    <div className="top-text-area">
+                      <label className="block">Top Notes:</label>
+                      <div ref={topTextRef} className="editor-area">
+                        <RichTextEditor
+                          value={htmlToSlateValue(topText)}
+                          onChange={(newValue) => {
+                            const html = slateValueToHtml(newValue);
+                            handleTopTextChange(html);
+                          }}
+                          inkColor={inkColor}
+                          fontFamily={fontFamily}
+                          fontSize={fontSize}
+                          letterSpacing={letterSpacing}
+                          wordSpacing={wordSpacing}
+                          className="top-note-preview"
+                        />
+                      </div>
+                    </div>
+                  </fieldset>
+                </div>
+              )}
+
+              {/* Font upload component */}
+              <FontUploader onFontLoaded={(fontName) => setFontFamily(fontName)} />
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
 
-      {drawingCanvasVisible && (
-      <DrawingCanvas
-        onClose={() => setDrawingCanvasVisible(false)}
-        onAddToPaper={handleAddToPaper}
-          inkColor={inkColor}
-          visible={drawingCanvasVisible}
-        />
-      )}
-      
-      <button 
-        type="button" 
-        className="draw-button" 
-        onClick={() => setDrawingCanvasVisible(true)}
-      >
-        Add Drawing
-      </button>
-
-      <button 
-        type="button" 
-        className="theme-toggle-button" 
-        onClick={toggleTheme}
-        title={isDark ? "Switch to Light Mode" : "Switch to Dark Mode"}
-      >
-        <span className="fade-in-light" style={{ opacity: isDark ? 0 : 1 }}>☀️</span>
-        <span className="fade-in-dark" style={{ opacity: isDark ? 1 : 0 }}>🌙</span>
-      </button>
-    </main>
+        {drawingCanvasVisible && (
+          <DrawingCanvas
+            onClose={() => setDrawingCanvasVisible(false)}
+            onAddToPaper={handleAddToPaper}
+            inkColor={inkColor}
+            visible={drawingCanvasVisible}
+          />
+        )}
+        
+        <button 
+          type="button" 
+          className="theme-toggle-button" 
+          onClick={toggleTheme}
+          title={isDark ? "Switch to Light Mode" : "Switch to Dark Mode"}
+        >
+          <span className="fade-in-light" style={{ opacity: isDark ? 0 : 1 }}>☀️</span>
+          <span className="fade-in-dark" style={{ opacity: isDark ? 1 : 0 }}>🌙</span>
+        </button>
+      </main>
+    </ErrorBoundary>
   );
 }

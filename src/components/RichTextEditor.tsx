@@ -6,6 +6,8 @@ import { Slate, Editable, withReact, ReactEditor } from 'slate-react';
 import { withHistory } from 'slate-history';
 import katex from 'katex';
 import 'katex/dist/katex.min.css';
+import 'react-katex/dist/react-katex.css';
+import { InlineMath, BlockMath } from 'react-katex';
 
 type CustomElement = {
   type: 'paragraph' | 'math';
@@ -315,18 +317,15 @@ const DefaultElement = (props: any) => {
 
 const MathElement = (props: any) => {
   const formula = props.element.formula;
-  const html = useMemo(() => {
-    try {
-      return katex.renderToString(formula);
-    } catch (error) {
-      console.error('KaTeX error:', error);
-      return `Error: ${(error as Error).message}`;
-    }
-  }, [formula]);
-
+  const isInline = !formula.includes('\n');
+  
   return (
     <div {...props.attributes} contentEditable={false}>
-      <div dangerouslySetInnerHTML={{ __html: html }} />
+      {isInline ? (
+        <InlineMath math={formula} />
+      ) : (
+        <BlockMath math={formula} />
+      )}
       {props.children}
     </div>
   );

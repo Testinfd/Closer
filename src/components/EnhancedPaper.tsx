@@ -59,13 +59,22 @@ const EnhancedPaper: React.FC<EnhancedPaperProps> = ({
   const contentRef = useRef<HTMLDivElement>(null);
   const sideNoteRef = useRef<HTMLDivElement>(null);
   const topNoteRef = useRef<HTMLDivElement>(null);
-  const [slateValue, setSlateValue] = useState<Descendant[]>(DEFAULT_SLATE_VALUE);
+  const [mainContent, setMainContent] = useState<Descendant[]>(DEFAULT_SLATE_VALUE);
+  const [sideContent, setSideContent] = useState<Descendant[]>(DEFAULT_SLATE_VALUE);
+  const [topContent, setTopContent] = useState<Descendant[]>(DEFAULT_SLATE_VALUE);
   const [editor] = useState(() => withHistory(withReact(createEditor())));
 
   useEffect(() => {
-    const converted = htmlToSlateValue(initialValue);
-    setSlateValue(converted);
+    setMainContent(htmlToSlateValue(initialValue));
   }, [initialValue]);
+
+  useEffect(() => {
+    setSideContent(htmlToSlateValue(sideText));
+  }, [sideText]);
+  
+  useEffect(() => {
+    setTopContent(htmlToSlateValue(topText));
+  }, [topText]);
 
   useEffect(() => {
     if (paperRef.current) {
@@ -207,17 +216,33 @@ const EnhancedPaper: React.FC<EnhancedPaperProps> = ({
     }
   }, [paperTextureUrl, realisticInkEffects, randomizeHandwriting, inkColor, paperRef]);
 
-  const handleContentChange = (newValue: Descendant[]) => {
-    if (!newValue || !Array.isArray(newValue)) {
-      console.warn("Invalid Slate value received:", newValue);
-      return;
-    }
-    setSlateValue(newValue);
+  const handleMainContentChange = (newValue: Descendant[]) => {
+    setMainContent(newValue);
     try {
       const html = slateValueToHtml(newValue);
       onContentChange(html);
     } catch (error) {
-      console.error("Error converting Slate value to HTML:", error);
+      console.error("Error converting main content to HTML:", error);
+    }
+  };
+  
+  const handleSideContentChange = (newValue: Descendant[]) => {
+    setSideContent(newValue);
+    try {
+      const html = slateValueToHtml(newValue);
+      onSideTextChange(html);
+    } catch (error) {
+      console.error("Error converting side content to HTML:", error);
+    }
+  };
+
+  const handleTopContentChange = (newValue: Descendant[]) => {
+    setTopContent(newValue);
+    try {
+      const html = slateValueToHtml(newValue);
+      onTopTextChange(html);
+    } catch (error) {
+      console.error("Error converting top content to HTML:", error);
     }
   };
 
@@ -245,11 +270,8 @@ const EnhancedPaper: React.FC<EnhancedPaperProps> = ({
         textAlign: 'center'
       }}>
         <RichTextEditor
-          value={htmlToSlateValue(topText)}
-          onChange={(newValue) => {
-            const html = slateValueToHtml(newValue);
-            onTopTextChange(html);
-          }}
+          value={topContent}
+          onChange={handleTopContentChange}
           inkColor={inkColor}
           fontFamily={fontFamily}
           fontSize={fontSize}
@@ -277,11 +299,8 @@ const EnhancedPaper: React.FC<EnhancedPaperProps> = ({
             height: '100%'
           }}>
             <RichTextEditor
-              value={htmlToSlateValue(sideText)}
-              onChange={(newValue) => {
-                const html = slateValueToHtml(newValue);
-                onSideTextChange(html);
-              }}
+              value={sideContent}
+              onChange={handleSideContentChange}
               inkColor={inkColor}
               fontFamily={fontFamily}
               fontSize={fontSize}
@@ -309,8 +328,8 @@ const EnhancedPaper: React.FC<EnhancedPaperProps> = ({
         >
           <div className="editor-wrapper" style={{ width: '100%', position: 'relative' }}>
             <RichTextEditor
-              value={slateValue}
-              onChange={handleContentChange}
+              value={mainContent}
+              onChange={handleMainContentChange}
               inkColor={inkColor}
               fontFamily={fontFamily}
               fontSize={fontSize}

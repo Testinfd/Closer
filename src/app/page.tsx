@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useReducer } from 'react';
 import EnhancedPaper from '../components/EnhancedPaper';
 import CustomizationForm from '../components/CustomizationForm';
 import DrawingCanvas from '../components/DrawingCanvas';
@@ -77,16 +77,62 @@ const EXAMPLE_SIDE_NOTE = `<p>Key formulas:</p>
 
 const EXAMPLE_TOP_NOTE = `<p>Physics Notes - Chapter 4: Forces and Motion</p>`;
 
+// Define action types for the reducer
+type StateAction = 
+  | { type: 'SET_TEXT'; payload: string }
+  | { type: 'SET_SIDE_TEXT'; payload: string }
+  | { type: 'SET_TOP_TEXT'; payload: string }
+  | { type: 'TOGGLE_EXAMPLE_TEXT'; payload: boolean };
+
+// Define the state shape
+interface AppState {
+  text: string;
+  sideText: string;
+  topText: string;
+  isExampleVisible: boolean;
+}
+
+// Initial state
+const initialState: AppState = {
+  text: '',
+  sideText: '',
+  topText: '',
+  isExampleVisible: false,
+};
+
+// Reducer function
+const appStateReducer = (state: AppState, action: StateAction): AppState => {
+  switch (action.type) {
+    case 'SET_TEXT':
+      return { ...state, text: action.payload };
+    case 'SET_SIDE_TEXT':
+      return { ...state, sideText: action.payload };
+    case 'SET_TOP_TEXT':
+      return { ...state, topText: action.payload };
+    case 'TOGGLE_EXAMPLE_TEXT':
+      const isVisible = action.payload;
+      return {
+        ...state,
+        isExampleVisible: isVisible,
+        text: isVisible ? EXAMPLE_MAIN_TEXT : state.text,
+        sideText: isVisible ? EXAMPLE_SIDE_NOTE : state.sideText,
+        topText: isVisible ? EXAMPLE_TOP_NOTE : state.topText,
+      };
+    default:
+      return state;
+  }
+};
+
 export default function Home() {
-  // Paper Content State
-  const [text, setText] = useState<string>(EXAMPLE_MAIN_TEXT);
+  const [state, dispatch] = useReducer(appStateReducer, initialState);
+
+  // Paper Content State (now managed by reducer)
+  const { text, sideText, topText, isExampleVisible } = state;
   
   // External Text Areas
   const [showExternalText, setShowExternalText] = useState<boolean>(false);
-  const [sideText, setSideText] = useState<string>(EXAMPLE_SIDE_NOTE);
-  const [topText, setTopText] = useState<string>(EXAMPLE_TOP_NOTE);
   
-  // Example overlay states
+  // Example overlay states (now managed by reducer)
   const [showMainExample, setShowMainExample] = useState<boolean>(false);
   const [showSideExample, setShowSideExample] = useState<boolean>(false);
   const [showTopExample, setShowTopExample] = useState<boolean>(false);
@@ -224,20 +270,20 @@ export default function Home() {
 
   const handleAddToPaper = (dataUrl: string) => {
     const imgTag = `<img src="${dataUrl}" style="max-width: 100%;" />`;
-    setText(prev => prev + imgTag);
+    dispatch({ type: 'SET_TEXT', payload: text + imgTag });
     setDrawingCanvasVisible(false);
   };
 
   const handleContentChange = (newHtml: string) => {
-    setText(sanitizeRichTextContent(newHtml, true));
+    dispatch({ type: 'SET_TEXT', payload: sanitizeRichTextContent(newHtml, true) });
   };
 
   const handleSideTextChange = (newHtml: string) => {
-    setSideText(sanitizeRichTextContent(newHtml, true));
+    dispatch({ type: 'SET_SIDE_TEXT', payload: sanitizeRichTextContent(newHtml, true) });
   };
 
   const handleTopTextChange = (newHtml: string) => {
-    setTopText(sanitizeRichTextContent(newHtml, true));
+    dispatch({ type: 'SET_TOP_TEXT', payload: sanitizeRichTextContent(newHtml, true) });
   };
 
   const handleFontSizeChange = (value: string) => {
@@ -276,10 +322,12 @@ export default function Home() {
   };
 
   const handleToggleExampleText = () => {
-    setShowMainExample(prev => !prev);
+    const nextIsExampleVisible = !isExampleVisible;
+    dispatch({ type: 'TOGGLE_EXAMPLE_TEXT', payload: nextIsExampleVisible });
+    setShowMainExample(nextIsExampleVisible);
     if (hasMargins) {
-      setShowSideExample(prev => !prev);
-      setShowTopExample(prev => !prev);
+      setShowSideExample(nextIsExampleVisible);
+      setShowTopExample(nextIsExampleVisible);
     }
   };
 

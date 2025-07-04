@@ -6,7 +6,6 @@ import { Slate, Editable, withReact, ReactEditor } from 'slate-react';
 import { withHistory } from 'slate-history';
 import katex from 'katex';
 import 'katex/dist/katex.min.css';
-import 'react-katex/dist/react-katex.css';
 import { InlineMath, BlockMath } from 'react-katex';
 
 type CustomElement = {

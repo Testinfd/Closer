@@ -1,10 +1,10 @@
 'use client';
 
 import React, { useCallback, useMemo, useState, useEffect } from 'react';
-import { createEditor, BaseEditor, Descendant, Node, NodeEntry, Transforms, Element } from 'slate';
-import { Slate, Editable, withReact, ReactEditor } from 'slate-react';
+// NodeEntry, Element, and katex are unused and removed. Node is used by slateEditor.normalizeNode.
+import { createEditor, BaseEditor, Descendant, Node, Transforms } from 'slate';
+import { Slate, Editable, withReact, ReactEditor, RenderElementProps, RenderLeafProps } from 'slate-react';
 import { withHistory } from 'slate-history';
-import katex from 'katex';
 import 'katex/dist/katex.min.css';
 import { InlineMath, BlockMath } from 'react-katex';
 
@@ -128,13 +128,35 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
   }, []);
 
   // Error handling for DOM operations
-  const handleDOMError = useCallback((error: any) => {
-    console.warn('Slate DOM error suppressed:', error?.message || 'Unknown error');
-    // Suppress errors to prevent component crashes
+  const handleDOMError = useCallback((event: React.SyntheticEvent<HTMLDivElement, Event>) => {
+    let errorMessage = 'Unknown DOM error in Slate Editor';
+    const { nativeEvent } = event;
+
+    if (nativeEvent instanceof ErrorEvent) {
+      // ErrorEvent has a 'message' property and an 'error' property (which can be any)
+      if (nativeEvent.error) {
+        if (typeof nativeEvent.error.message === 'string') {
+          errorMessage = nativeEvent.error.message;
+        } else if (typeof nativeEvent.error === 'string') {
+          errorMessage = nativeEvent.error;
+        }
+      } else if (typeof nativeEvent.message === 'string') {
+        errorMessage = nativeEvent.message;
+      }
+    } else if (nativeEvent && 'message' in nativeEvent && typeof (nativeEvent as { message?: unknown }).message === 'string') {
+      // Fallback for other event types that might have a message
+       errorMessage = (nativeEvent as { message: string }).message;
+    }
+
+    console.warn('Slate DOM error suppressed:', errorMessage);
+    // The return value true might be specific to how Slate internally handles this,
+    // or it might just be a convention from a previous implementation.
+    // Standard React event handlers (like ReactEventHandler) don't typically use the return value.
+    // For now, keeping it true as it doesn't harm and might be expected by Slate's Editable.
     return true;
   }, []);
 
-  const renderElement = useCallback((props: any) => {
+  const renderElement = useCallback((props: RenderElementProps) => {
     switch (props.element.type) {
       case 'math':
         return <MathElement {...props} />;
@@ -143,7 +165,7 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
     }
   }, []);
 
-  const renderLeaf = useCallback((props: any) => {
+  const renderLeaf = useCallback((props: RenderLeafProps) => {
     return <Leaf {...props} />;
   }, []);
 
@@ -310,42 +332,43 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
   );
 };
 
-const DefaultElement = (props: any) => {
+const DefaultElement = (props: RenderElementProps) => {
   return <div {...props.attributes} style={{ margin: '0', padding: '0' }}>{props.children}</div>;
 };
 
-const MathElement = (props: any) => {
-  const formula = props.element.formula;
+const MathElement = (props: RenderElementProps) => {
+  const formula = (props.element as CustomElement).formula || '';
   const isInline = !formula.includes('\n');
   
   return (
-    <div {...props.attributes} contentEditable={false}>
+    <div {...props.attributes} contentEditable={false} style={{ userSelect: 'none' }}>
       {isInline ? (
         <InlineMath math={formula} />
       ) : (
         <BlockMath math={formula} />
       )}
-      {props.children}
     </div>
   );
 };
 
-const Leaf = (props: any) => {
-  let { attributes, children, leaf } = props;
-  
+const Leaf = (props: RenderLeafProps) => {
+  const { attributes, children: originalChildren } = props;
+  let currentChildren = originalChildren;
+  const { leaf } = props; // leaf is CustomText
+
   if (leaf.bold) {
-    children = <strong>{children}</strong>;
+    currentChildren = <strong>{currentChildren}</strong>;
   }
   
   if (leaf.italic) {
-    children = <em>{children}</em>;
+    currentChildren = <em>{currentChildren}</em>;
   }
   
   if (leaf.underline) {
-    children = <u>{children}</u>;
+    currentChildren = <u>{currentChildren}</u>;
   }
 
-  return <span {...attributes}>{children}</span>;
+  return <span {...attributes}>{currentChildren}</span>;
 };
 
-export default RichTextEditor; 
+export default RichTextEditor;

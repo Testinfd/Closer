@@ -1,9 +1,7 @@
 'use client';
 
 import React, { useEffect, useRef, useState } from 'react';
-import { createEditor, Descendant } from 'slate';
-import { withHistory } from 'slate-history';
-import { withReact } from 'slate-react';
+import { Descendant } from 'slate'; // createEditor, withHistory, withReact removed as unused
 import RichTextEditor from './RichTextEditor';
 import { applyPaperTexture, applyInkBleedEffect, applyPaperImperfections } from '../utils/paper-effects';
 import { applyInkVariations, applyNonUniformLineEndings, applyWordVariations } from '../utils/handwriting-randomization';
@@ -64,7 +62,7 @@ const EnhancedPaper: React.FC<EnhancedPaperProps> = ({
   const [mainContent, setMainContent] = useState<Descendant[]>(DEFAULT_SLATE_VALUE);
   const [sideContent, setSideContent] = useState<Descendant[]>(DEFAULT_SLATE_VALUE);
   const [topContent, setTopContent] = useState<Descendant[]>(DEFAULT_SLATE_VALUE);
-  const [editor] = useState(() => withHistory(withReact(createEditor())));
+  // const [editor] = useState(() => withHistory(withReact(createEditor()))); // Removed unused editor instance
 
   useEffect(() => {
     setMainContent(htmlToSlateValue(initialValue));

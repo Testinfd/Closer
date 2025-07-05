@@ -1,4 +1,4 @@
-import { Descendant } from 'slate';
+import { Descendant, Element as SlateElement, Text as SlateText } from 'slate';
 
 // Default Slate value when html is empty or during SSR
 export const DEFAULT_SLATE_VALUE: Descendant[] = [
@@ -9,10 +9,11 @@ export const DEFAULT_SLATE_VALUE: Descendant[] = [
 ];
 
 // More modern approach to HTML conversion using the DOM
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const deserialize = (el: globalThis.Node): any => {
-  if (el.nodeType === 3) {
-    return { text: el.textContent };
-  } else if (el.nodeType !== 1) {
+  if (el.nodeType === 3) { // Text node
+    return { text: el.textContent || '' }; // Ensure text content is not null
+  } else if (el.nodeType !== 1) { // Not an Element node
     return null;
   }
 
@@ -68,7 +69,16 @@ export const htmlToSlateValue = (html: string): Descendant[] => {
 
   try {
     const doc = new DOMParser().parseFromString(html, 'text/html');
-    const slateContent = deserialize(doc.body);
+    const deserializedBody = deserialize(doc.body);
+    // Ensure the result is an array of Descendant, even if deserialize returns a single item or null/string.
+    let slateContent: Descendant[];
+    if (Array.isArray(deserializedBody)) {
+      slateContent = deserializedBody.filter(n => n !== null && typeof n !== 'string') as Descendant[];
+    } else if (deserializedBody && typeof deserializedBody !== 'string') {
+      slateContent = [deserializedBody as Descendant];
+    } else {
+      slateContent = [];
+    }
     return slateContent.length > 0 ? slateContent : DEFAULT_SLATE_VALUE;
   } catch (error) {
     console.error('Error parsing HTML to Slate value:', error);
@@ -78,44 +88,40 @@ export const htmlToSlateValue = (html: string): Descendant[] => {
 
 // Modern approach to serialize Slate nodes to HTML
 export const serialize = (node: Descendant): string => {
-  // Handle text nodes
-  if ('text' in node) {
+  if (SlateText.isText(node)) {
     let text = node.text;
-    if ('bold' in node && node.bold) {
+    // Custom text properties like 'bold' are defined in CustomTypes
+    if (node.bold) {
       text = `<strong>${text}</strong>`;
     }
-    if ('italic' in node && node.italic) {
+    if (node.italic) {
       text = `<em>${text}</em>`;
     }
-    if ('underline' in node && node.underline) {
+    if (node.underline) {
       text = `<u>${text}</u>`;
     }
     return text;
   }
 
-  // Handle elements with children
-  if ('children' in node) {
-    const children = (node.children as Descendant[])
-      .map((n: Descendant) => serialize(n))
-      .join('');
-    
-    if ((node as any).type === 'paragraph') {
-      return `<p>${children}</p>`;
+  if (SlateElement.isElement(node)) {
+    const childrenHtml = node.children.map(n => serialize(n)).join('');
+
+    // node is CustomElement here due to module augmentation
+    switch (node.type) {
+      case 'paragraph':
+        return `<p>${childrenHtml}</p>`;
+      case 'math':
+        // The 'formula' property is guaranteed by CustomElement if type is 'math'
+        // However, make sure 'formula' is non-optional in the CustomElement definition for 'math' type
+        // or provide a fallback. The CustomElement definition in RichTextEditor has formula?: string.
+        const formula = node.formula || '';
+        return `<div class="math-formula" data-formula="${formula}"><span class="katex-formula">${formula}</span></div>`;
+      default:
+        return childrenHtml;
     }
-    
-    if ((node as any).type === 'math' && 'formula' in node) {
-      // Ensure the formula is properly escaped for HTML attributes if needed, though KaTeX handles most cases.
-      const formula = (node as any).formula;
-      // When serializing, we just output the formula. KaTeX will render it on the client.
-      // The div with class "math-formula" will be targeted by KaTeX rendering logic.
-      // The span with "katex-formula" will hold the raw formula text for KaTeX.
-      return `<div class="math-formula" data-formula="${formula}"><span class="katex-formula">${formula}</span></div>`;
-    }
-    
-    return children;
   }
   
-  return '';
+  return ''; // Should ideally not be reached if node is always a valid Descendant
 };
 
 // Convert Slate's value to HTML

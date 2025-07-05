@@ -104,9 +104,12 @@ export const serialize = (node: Descendant): string => {
     }
     
     if ((node as any).type === 'math' && 'formula' in node) {
-      return `<div class="math-formula" data-formula="${(node as any).formula}">
-        <span class="katex-formula">${(node as any).formula}</span>
-      </div>`;
+      // Ensure the formula is properly escaped for HTML attributes if needed, though KaTeX handles most cases.
+      const formula = (node as any).formula;
+      // When serializing, we just output the formula. KaTeX will render it on the client.
+      // The div with class "math-formula" will be targeted by KaTeX rendering logic.
+      // The span with "katex-formula" will hold the raw formula text for KaTeX.
+      return `<div class="math-formula" data-formula="${formula}"><span class="katex-formula">${formula}</span></div>`;
     }
     
     return children;

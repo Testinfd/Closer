@@ -132,10 +132,7 @@ export default function Home() {
   // External Text Areas
   const [showExternalText, setShowExternalText] = useState<boolean>(false);
   
-  // Example overlay states (now managed by reducer)
-  const [showMainExample, setShowMainExample] = useState<boolean>(false);
-  const [showSideExample, setShowSideExample] = useState<boolean>(false);
-  const [showTopExample, setShowTopExample] = useState<boolean>(false);
+  // Example overlay states are now primarily driven by `isExampleVisible` from the reducer
   
   // Paper Styling State
   const [inkColor, setInkColor] = useState<string>('#000f55');
@@ -322,11 +319,7 @@ export default function Home() {
   };
 
   const handleToggleExampleText = () => {
-    const nextIsExampleVisible = !isExampleVisible;
-    dispatch({ type: 'TOGGLE_EXAMPLE_TEXT', payload: nextIsExampleVisible });
-    setShowMainExample(nextIsExampleVisible);
-    setShowSideExample(nextIsExampleVisible && hasMargins);
-    setShowTopExample(nextIsExampleVisible && hasMargins);
+    dispatch({ type: 'TOGGLE_EXAMPLE_TEXT', payload: !isExampleVisible });
   };
 
   return (
@@ -371,7 +364,7 @@ export default function Home() {
                     onClick={handleToggleExampleText}
                     title="Toggle example text"
                   >
-                    {showMainExample ? "Hide Example" : "Show Example"}
+                    {isExampleVisible ? "Hide Example" : "Show Example"}
                   </button>
                   
                   <button 
@@ -431,36 +424,36 @@ export default function Home() {
               {paperRef.current && (
                 <>
                   {/* Main content example overlay */}
-                  {showMainExample && (
+                  {isExampleVisible && (
                     <div className="relative-position">
                       <PlaceholderOverlay
                         exampleText={EXAMPLE_MAIN_TEXT}
-                        isActive={showMainExample}
-                        onDismiss={() => setShowMainExample(false)}
+                        isActive={isExampleVisible}
+                        onDismiss={() => dispatch({ type: 'TOGGLE_EXAMPLE_TEXT', payload: false })}
                         type="main"
                       />
                     </div>
                   )}
                   
                   {/* Side notes example overlay */}
-                  {showSideExample && hasMargins && (
+                  {isExampleVisible && hasMargins && (
                     <div className="relative-position side-example-container">
                       <PlaceholderOverlay
                         exampleText={EXAMPLE_SIDE_NOTE}
-                        isActive={showSideExample}
-                        onDismiss={() => setShowSideExample(false)}
+                        isActive={isExampleVisible}
+                        onDismiss={() => dispatch({ type: 'TOGGLE_EXAMPLE_TEXT', payload: false })}
                         type="side"
                       />
                     </div>
                   )}
                   
                   {/* Top notes example overlay */}
-                  {showTopExample && hasMargins && (
+                  {isExampleVisible && hasMargins && (
                     <div className="relative-position top-example-container">
                       <PlaceholderOverlay
                         exampleText={EXAMPLE_TOP_NOTE}
-                        isActive={showTopExample}
-                        onDismiss={() => setShowTopExample(false)}
+                        isActive={isExampleVisible}
+                        onDismiss={() => dispatch({ type: 'TOGGLE_EXAMPLE_TEXT', payload: false })}
                         type="top"
                       />
                     </div>

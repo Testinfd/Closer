@@ -71,32 +71,41 @@ export function createRandomizedCharacter(
   char: string,
   inkColor: string,
   fontFamily: string,
-  fontSize: number
+  fontSize: number,
+  intensity: number = 0.7, // Default intensity
+  isSpecialPosition: boolean = false
 ): React.CSSProperties {
   // Skip spaces and specific characters
   if (char === ' ' || char === '\n' || char === '\t') {
     return {};
   }
+
+  const variationMultiplier = isSpecialPosition ? intensity * 1.5 : intensity;
+
+  // Adjusted rotation based on intensity
+  const rotation = (Math.random() - 0.5) * 6 * variationMultiplier; // Max rotation: 3 * 1.5 = 4.5 deg, or 3 * 0.7 = 2.1 deg
   
-  // Increase rotation for more noticeable effect (from -1 to 1 degrees to -3 to 3 degrees)
-  const rotation = (Math.random() - 0.5) * 6;
+  // Adjusted scale variation based on intensity
+  const scaleVariation = 0.1 * variationMultiplier; // Max scale variation: 0.05 * 1.5 = 0.075, or 0.05 * 0.7 = 0.035
+  const scale = 0.95 + Math.random() * scaleVariation + (scaleVariation/2); // Centered around 1 more or less
   
-  // More noticeable scale variation (from 0.98-1.02 to 0.95-1.05)
-  const scale = 0.95 + Math.random() * 0.1;
+  // Adjusted baseline shift based on intensity
+  const baselineShift = (Math.random() - 0.5) * 4 * variationMultiplier; // Max shift: 2 * 1.5 = 3px, or 2 * 0.7 = 1.4px
   
-  // More noticeable baseline shift (from -0.75 to 0.75 to -2 to 2)
-  const baselineShift = (Math.random() - 0.5) * 4;
-  
-  // More varied ink opacity variation for natural ink flow
-  const opacity = 0.85 + Math.random() * 0.15;
+  // Adjusted ink opacity variation based on intensity
+  const opacityVariation = 0.15 * variationMultiplier;
+  const opacity = (0.85 + Math.random() * opacityVariation);
   
   return {
-    display: 'inline-block',
+    display: 'inline-block', // Necessary for transform to apply correctly
     transform: `rotate(${rotation}deg) scale(${scale}) translateY(${baselineShift}px)`,
-    color: inkColor,
+    color: inkColor, // Base color, actual variations can be done by caller if needed (like applyInkVariations does)
     opacity,
-    fontFamily,
-    fontSize: `${fontSize}pt`,
+    fontFamily, // Pass through, assuming base font is set elsewhere
+    fontSize: `${fontSize}pt`, // Pass through, assuming base font size set elsewhere
+    // Note: createRandomizedCharacter used to set fontSize: `${sizeVariation}em`.
+    // If per-character size variation is desired from here, it needs to be added.
+    // The current call site in applyInkVariations does its own 'em' based size variation.
   };
 }
 
@@ -166,40 +175,48 @@ export function applyInkVariations(element: HTMLElement, inkColor: string, inten
         i >= pos && i <= pos + 2 // The character and next few chars at this position
       );
       
-      // Apply more variation for special positions, less for others
-      // Increase multiplier for more noticeable effect
-      const variationMultiplier = isSpecialPosition ? intensity * 1.5 : intensity;
+      const variationMultiplier = isSpecialPosition ? intensity * 1.5 : intensity; // Keep for color density & em size
       
-      // Random ink density with more noticeable variations
-      const densityVariation = variationMultiplier * 0.5; // Increased from 0.3 to 0.5
+      // Get base styles from createRandomizedCharacter
+      // We need to pass baseFontSize and baseFontFamily to createRandomizedCharacter if they are available here.
+      // Assuming element.style.fontFamily and element.style.fontSize provide the base.
+      // This might be tricky if they are not set directly on the element or are inherited.
+      // For now, let's assume some defaults or find a way to get them.
+      // Let's assume `element.style.fontSize` is like '10pt', so we need to parse it.
+      let baseFontSizePt = 12; // Default if not found
+      if (element.style.fontSize && element.style.fontSize.includes('pt')) {
+        baseFontSizePt = parseFloat(element.style.fontSize);
+      } else if (element.style.fontSize && element.style.fontSize.includes('px')) {
+         baseFontSizePt = parseFloat(element.style.fontSize) * 0.75; // approx conversion
+      }
+
+
+      const charStyles = createRandomizedCharacter(
+        char,
+        inkColor, // Base ink color, createRandomizedCharacter will set this
+        element.style.fontFamily || 'serif', // Base font family
+        baseFontSizePt, // Base font size in points
+        intensity,
+        isSpecialPosition
+      );
+
+      // Apply styles from createRandomizedCharacter
+      Object.assign(span.style, charStyles);
+
+      // Apply ink density (color variation) - this remains specific to applyInkVariations
+      const densityVariation = variationMultiplier * 0.6;
       const density = 0.8 + Math.random() * densityVariation;
-      const darkR = Math.floor(rgb.r * density);
-      const darkG = Math.floor(rgb.g * density);
-      const darkB = Math.floor(rgb.b * density);
-      
-      // Apply more noticeable rotation
-      const rotation = isSpecialPosition 
-        ? (Math.random() - 0.5) * 4 * variationMultiplier  // Increased from 2 to 4
-        : (Math.random() - 0.5) * 1.5 * variationMultiplier; // Increased from 0.7 to 1.5
-      
-      // Apply enhanced styles
-      span.style.color = `rgb(${darkR}, ${darkG}, ${darkB})`;
-      span.style.display = 'inline-block';
-      
-      // Only apply transformation if not a space
-      if (char.trim()) {
-        span.style.transform = `rotate(${rotation}deg)`;
-        
-        // Apply more noticeable baseline jitter
-        const baselineJitter = (Math.random() - 0.5) * variationMultiplier * 3; // Increased from 1.5 to 3
-        span.style.position = 'relative';
-        span.style.top = `${baselineJitter}px`;
-        
-        // Apply more noticeable size variation
-        const sizeVariation = isSpecialPosition 
-          ? 1 + (Math.random() - 0.5) * 0.08 * variationMultiplier  // Increased from 0.05 to 0.08
-          : 1 + (Math.random() - 0.5) * 0.04 * variationMultiplier; // Increased from 0.02 to 0.04
-        span.style.fontSize = `${sizeVariation}em`;
+      const darkR = Math.max(0, Math.min(255, Math.floor(rgb.r * density)));
+      const darkG = Math.max(0, Math.min(255, Math.floor(rgb.g * density)));
+      const darkB = Math.max(0, Math.min(255, Math.floor(rgb.b * density)));
+      span.style.color = `rgb(${darkR}, ${darkG}, ${darkB})`; // Override color from charStyles with varied one
+
+      // Apply 'em' based size variation (this is additional to any scale from createRandomizedCharacter)
+      if (char.trim()) { // Only if not a space
+        const emSizeVariation = isSpecialPosition
+          ? 1 + (Math.random() - 0.5) * 0.1 * variationMultiplier
+          : 1 + (Math.random() - 0.5) * 0.05 * variationMultiplier;
+        span.style.fontSize = `${emSizeVariation}em`; // This will be relative to the fontSize set by createRandomizedCharacter
       }
       
       fragment.appendChild(span);
@@ -236,7 +253,7 @@ export function applyNonUniformLineEndings(element: HTMLElement, maxVariation: n
     
     // Add a very slight random rotation for more natural look
     // More subtle rotation
-    const rotation = (Math.random() - 0.5) * 0.3; // -0.15 to 0.15 degrees (was -0.25 to 0.25)
+    const rotation = (Math.random() - 0.5) * 0.5; // Increased from 0.3
     (p as HTMLElement).style.transform = `rotate(${rotation}deg)`;
   });
 }
@@ -292,16 +309,16 @@ export function applyWordVariations(element: HTMLElement, intensity: number = 0.
           wordSpan.textContent = word;
           
           // Apply subtle letter spacing variation
-          const letterSpacing = (Math.random() - 0.5) * 0.5 * intensity;
+          const letterSpacing = (Math.random() - 0.5) * 0.8 * intensity; // Increased from 0.5
           wordSpan.style.letterSpacing = `${letterSpacing}px`;
           
           // Apply subtle baseline shift
-          const baselineShift = (Math.random() - 0.5) * intensity;
+          const baselineShift = (Math.random() - 0.5) * 1.2 * intensity; // Increased from 1.0
           wordSpan.style.position = 'relative';
           wordSpan.style.top = `${baselineShift}px`;
           
           // Very subtle rotation
-          const rotation = (Math.random() - 0.5) * intensity * 0.6;
+          const rotation = (Math.random() - 0.5) * intensity * 0.8; // Increased from 0.6
           wordSpan.style.display = 'inline-block';
           wordSpan.style.transform = `rotate(${rotation}deg)`;
           

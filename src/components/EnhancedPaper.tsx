@@ -8,6 +8,7 @@ import RichTextEditor from './RichTextEditor';
 import { applyPaperTexture, applyInkBleedEffect, applyPaperImperfections } from '../utils/paper-effects';
 import { applyInkVariations, applyNonUniformLineEndings, applyWordVariations } from '../utils/handwriting-randomization';
 import { DEFAULT_SLATE_VALUE, htmlToSlateValue, slateValueToHtml } from '../utils/slate-serializer';
+import katex from 'katex';
 import 'katex/dist/katex.min.css';
 
 interface EnhancedPaperProps {
@@ -72,10 +73,38 @@ const EnhancedPaper: React.FC<EnhancedPaperProps> = ({
   useEffect(() => {
     setSideContent(htmlToSlateValue(sideText));
   }, [sideText]);
-  
+
   useEffect(() => {
     setTopContent(htmlToSlateValue(topText));
   }, [topText]);
+
+  useEffect(() => {
+    // Render KaTeX formulas
+    const renderKatex = (element: HTMLElement | null) => {
+      if (element) {
+        const mathElements = element.querySelectorAll('.katex-formula');
+        mathElements.forEach((el) => {
+          const formula = el.textContent;
+          if (formula) {
+            try {
+              katex.render(formula, el as HTMLElement, {
+                throwOnError: false,
+                displayMode: el.parentElement?.nodeName.toLowerCase() === 'div' // Check if it's a block element
+              });
+            } catch (e) {
+              console.error('KaTeX rendering error:', e);
+              el.textContent = `Error rendering: ${formula}`;
+            }
+          }
+        });
+      }
+    };
+
+    renderKatex(paperRef.current);
+    renderKatex(contentRef.current);
+    renderKatex(sideNoteRef.current);
+    renderKatex(topNoteRef.current);
+  }, [mainContent, sideContent, topContent, inkColor, fontFamily, fontSize, paperRef, contentRef, sideNoteRef, topNoteRef]);
 
   useEffect(() => {
     if (paperRef.current) {
@@ -193,8 +222,8 @@ const EnhancedPaper: React.FC<EnhancedPaperProps> = ({
     }
     
     if (randomizeHandwriting) {
-      // Default intensity - subtle
-      const intensity = 0.6;
+      // Default intensity - increased for better visibility
+      const intensity = 0.8;
       
       // Apply handwriting randomization to all text areas
       if (contentEl) {
@@ -215,7 +244,7 @@ const EnhancedPaper: React.FC<EnhancedPaperProps> = ({
         applyWordVariations(topNoteEl, intensity);
       }
     }
-  }, [paperTextureUrl, realisticInkEffects, randomizeHandwriting, inkColor, paperRef]);
+  }, [paperTextureUrl, realisticInkEffects, randomizeHandwriting, inkColor, paperRef, mainContent, sideContent, topContent]);
 
   const handleMainContentChange = (newValue: Descendant[]) => {
     setMainContent(newValue);

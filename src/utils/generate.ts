@@ -414,9 +414,24 @@ export const generateImages = async (
     // Reset output images array
     outputImages = [];
 
-    const clientHeight = 514; // height of .paper-content when there is no content
+    // Calculate printable page height dynamically
+    let printablePageHeight = pageEl.clientHeight;
+    const topMarginElCurrent = pageEl.querySelector('.top-margin') as HTMLElement;
+    if (topMarginElCurrent && getComputedStyle(topMarginElCurrent).display !== 'none') {
+      printablePageHeight -= topMarginElCurrent.offsetHeight;
+    }
+    // Consider bottom padding/margin of paperContentEl if any, or pageEl's bottom padding.
+    // For now, assuming topMargin is the main vertical element to subtract.
+    // Ensure printablePageHeight is at least 1 to avoid division by zero.
+    printablePageHeight = Math.max(1, printablePageHeight);
+
+
     const scrollHeight = paperContentEl.scrollHeight;
-    const totalPages = Math.ceil(scrollHeight / clientHeight);
+    let totalPages = 0;
+    if (scrollHeight > 0 && printablePageHeight > 0) {
+      totalPages = Math.ceil(scrollHeight / printablePageHeight);
+    }
+    if (totalPages === 0 && scrollHeight > 0) totalPages = 1; // Ensure at least one page if there's content that should be visible
 
     // Set a reasonable limit to prevent browser crashes
     const maxPages = 50;
@@ -425,33 +440,71 @@ export const generateImages = async (
       return [];
     }
 
+    const originalPaperContentStyles = {
+      height: paperContentEl.style.height,
+      overflow: paperContentEl.style.overflow,
+      position: paperContentEl.style.position,
+    };
+
     if (totalPages > 1) {
-      // For multiple pages
-      // Process each page
+      const originalChildren = Array.from(paperContentEl.childNodes);
+      paperContentEl.innerHTML = ''; // Clear existing content
+
+      paperContentEl.style.height = `${printablePageHeight}px`;
+      paperContentEl.style.overflow = 'hidden';
+      paperContentEl.style.position = 'relative'; // Context for movableDiv
+
+      const movableDiv = document.createElement('div');
+      movableDiv.style.position = 'absolute';
+      movableDiv.style.left = '0'; // Respect paperContentEl's padding if any by being inside
+      movableDiv.style.top = '0';
+      movableDiv.style.width = '100%'; // Ensure it takes full width of paperContentEl
+      originalChildren.forEach(child => movableDiv.appendChild(child.cloneNode(true)));
+      paperContentEl.appendChild(movableDiv);
+
+      // Ensure side/top notes are correctly set up once before looping (already done above)
+      // If they need to change per page, that logic would go inside the loop
+
       for (let i = 0; i < totalPages; i++) {
+        movableDiv.style.transform = `translateY(-${i * printablePageHeight}px)`;
+
+        // Restore static margin content if it was replaced by dynamic notes for previous captures
+        // This ensures that if sideNotes/topNotes are null, the original margin content is used.
+        if (leftMarginEl && !sideNotes) leftMarginEl.innerHTML = initialContent.leftMargin;
+        if (topMarginEl && !topNotes) topMarginEl.innerHTML = initialContent.topMargin;
+        // If sideNotes/topNotes are provided, they are already cloned and appended before this loop.
+
+        // A short delay for DOM update and transform to apply
+        await new Promise(resolve => setTimeout(resolve, 100));
+
         try {
-          // Apply proper styles for multi-page margins
-          if (leftMarginEl) leftMarginEl.innerHTML = initialContent.leftMargin;
-          if (topMarginEl) topMarginEl.innerHTML = initialContent.topMargin;
-          
-          // Generate the canvas
           const canvas = await convertDIVToImage(pageEl, resolution, pageEffect);
           outputImages.push(canvas);
         } catch (error) {
-          console.error(`Error generating page ${i+1}:`, error);
-          showErrorMessage(`Failed to generate page ${i+1}. ${(error as Error).message}`);
-          // Continue with other pages
+          console.error(`Error generating page ${i + 1}:`, error);
+          showErrorMessage(`Failed to generate page ${i + 1}. ${(error as Error).message}`);
+          // Decide if we should break or continue
+          // For now, continue to try and generate other pages
         }
       }
-    } else {
-      // Single image
+      // Restore paperContentEl's original styles (innerHTML is restored in finally)
+      paperContentEl.style.height = originalPaperContentStyles.height;
+      paperContentEl.style.overflow = originalPaperContentStyles.overflow;
+      paperContentEl.style.position = originalPaperContentStyles.position;
+      // paperContentEl.innerHTML will be restored by the finally block using initialContent.paperContent
+
+    } else if (totalPages === 1) {
+      // Single page
       try {
         const canvas = await convertDIVToImage(pageEl, resolution, pageEffect);
         outputImages.push(canvas);
       } catch (error) {
-        console.error('Error generating image:', error);
-        showErrorMessage(`Failed to generate image. ${(error as Error).message}`);
+        console.error('Error generating single image:', error);
+        showErrorMessage(`Failed to generate single image. ${(error as Error).message}`);
       }
+    } else if (totalPages === 0) {
+        // No content to generate
+        console.log("No content to generate images for.");
     }
 
     return outputImages;

@@ -114,9 +114,9 @@ const appStateReducer = (state: AppState, action: StateAction): AppState => {
       return {
         ...state,
         isExampleVisible: isVisible,
-        text: isVisible ? EXAMPLE_MAIN_TEXT : state.text,
-        sideText: isVisible ? EXAMPLE_SIDE_NOTE : state.sideText,
-        topText: isVisible ? EXAMPLE_TOP_NOTE : state.topText,
+        text: isVisible ? EXAMPLE_MAIN_TEXT : '',
+        sideText: isVisible ? EXAMPLE_SIDE_NOTE : '',
+        topText: isVisible ? EXAMPLE_TOP_NOTE : '',
       };
     default:
       return state;
@@ -325,10 +325,8 @@ export default function Home() {
     const nextIsExampleVisible = !isExampleVisible;
     dispatch({ type: 'TOGGLE_EXAMPLE_TEXT', payload: nextIsExampleVisible });
     setShowMainExample(nextIsExampleVisible);
-    if (hasMargins) {
-      setShowSideExample(nextIsExampleVisible);
-      setShowTopExample(nextIsExampleVisible);
-    }
+    setShowSideExample(nextIsExampleVisible && hasMargins);
+    setShowTopExample(nextIsExampleVisible && hasMargins);
   };
 
   return (

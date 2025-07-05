@@ -8,6 +8,7 @@ import RichTextEditor from './RichTextEditor';
 import { applyPaperTexture, applyInkBleedEffect, applyPaperImperfections } from '../utils/paper-effects';
 import { applyInkVariations, applyNonUniformLineEndings, applyWordVariations } from '../utils/handwriting-randomization';
 import { DEFAULT_SLATE_VALUE, htmlToSlateValue, slateValueToHtml } from '../utils/slate-serializer';
+import 'katex/dist/katex.min.css';
 
 interface EnhancedPaperProps {
   paperRef: React.RefObject<HTMLDivElement | null>;

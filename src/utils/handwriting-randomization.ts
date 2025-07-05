@@ -78,17 +78,17 @@ export function createRandomizedCharacter(
     return {};
   }
   
-  // More subtle rotation between -1 and 1 degrees (previously -2 and 2)
-  const rotation = (Math.random() - 0.5) * 2;
+  // Increase rotation for more noticeable effect (from -1 to 1 degrees to -3 to 3 degrees)
+  const rotation = (Math.random() - 0.5) * 6;
   
-  // More subtle scale between 0.98 and 1.02 (previously 0.95 and 1.05)
-  const scale = 0.98 + Math.random() * 0.04;
+  // More noticeable scale variation (from 0.98-1.02 to 0.95-1.05)
+  const scale = 0.95 + Math.random() * 0.1;
   
-  // More subtle baseline shift
-  const baselineShift = (Math.random() - 0.5) * 1.5;
+  // More noticeable baseline shift (from -0.75 to 0.75 to -2 to 2)
+  const baselineShift = (Math.random() - 0.5) * 4;
   
-  // More subtle ink opacity variation for natural ink flow
-  const opacity = 0.9 + Math.random() * 0.1;
+  // More varied ink opacity variation for natural ink flow
+  const opacity = 0.85 + Math.random() * 0.15;
   
   return {
     display: 'inline-block',
@@ -131,20 +131,19 @@ export function applyInkVariations(element: HTMLElement, inkColor: string, inten
   while ((node = walker.nextNode() as Text | null)) {
     if (!node?.textContent?.trim()) continue;
     
-    // Apply more subtle variations based on the intensity parameter
+    // Apply more noticeable variations based on the intensity parameter
     const text = node.textContent || '';
     const fragment = document.createDocumentFragment();
     
     // Choose a few random positions in the text to vary more noticeably
-    // (but still subtly)
     const specialPositions: number[] = [];
     const wordPositions = text.split(' ').map((_, i, arr) => 
       arr.slice(0, i).join(' ').length + (i > 0 ? i : 0)
     );
     
-    // Select 2-3 positions for slightly more variation
+    // Select more positions for increased variation
     if (wordPositions.length > 3) {
-      for (let i = 0; i < Math.min(3, Math.floor(wordPositions.length * 0.3)); i++) {
+      for (let i = 0; i < Math.min(4, Math.floor(wordPositions.length * 0.4)); i++) {
         const randomIdx = Math.floor(Math.random() * wordPositions.length);
         specialPositions.push(wordPositions[randomIdx]);
       }
@@ -168,21 +167,22 @@ export function applyInkVariations(element: HTMLElement, inkColor: string, inten
       );
       
       // Apply more variation for special positions, less for others
-      const variationMultiplier = isSpecialPosition ? intensity : intensity * 0.6;
+      // Increase multiplier for more noticeable effect
+      const variationMultiplier = isSpecialPosition ? intensity * 1.5 : intensity;
       
-      // Random ink density with more subtle variations
-      const densityVariation = variationMultiplier * 0.3; // 0.3 is max variation
-      const density = 0.85 + Math.random() * densityVariation;
+      // Random ink density with more noticeable variations
+      const densityVariation = variationMultiplier * 0.5; // Increased from 0.3 to 0.5
+      const density = 0.8 + Math.random() * densityVariation;
       const darkR = Math.floor(rgb.r * density);
       const darkG = Math.floor(rgb.g * density);
       const darkB = Math.floor(rgb.b * density);
       
-      // Apply very subtle rotation
+      // Apply more noticeable rotation
       const rotation = isSpecialPosition 
-        ? (Math.random() - 0.5) * 2 * variationMultiplier
-        : (Math.random() - 0.5) * 0.7 * variationMultiplier;
+        ? (Math.random() - 0.5) * 4 * variationMultiplier  // Increased from 2 to 4
+        : (Math.random() - 0.5) * 1.5 * variationMultiplier; // Increased from 0.7 to 1.5
       
-      // Apply subtle styles
+      // Apply enhanced styles
       span.style.color = `rgb(${darkR}, ${darkG}, ${darkB})`;
       span.style.display = 'inline-block';
       
@@ -190,15 +190,15 @@ export function applyInkVariations(element: HTMLElement, inkColor: string, inten
       if (char.trim()) {
         span.style.transform = `rotate(${rotation}deg)`;
         
-        // Apply subtle baseline jitter
-        const baselineJitter = (Math.random() - 0.5) * variationMultiplier * 1.5;
+        // Apply more noticeable baseline jitter
+        const baselineJitter = (Math.random() - 0.5) * variationMultiplier * 3; // Increased from 1.5 to 3
         span.style.position = 'relative';
         span.style.top = `${baselineJitter}px`;
         
-        // Apply subtle size variation
+        // Apply more noticeable size variation
         const sizeVariation = isSpecialPosition 
-          ? 1 + (Math.random() - 0.5) * 0.05 * variationMultiplier
-          : 1 + (Math.random() - 0.5) * 0.02 * variationMultiplier;
+          ? 1 + (Math.random() - 0.5) * 0.08 * variationMultiplier  // Increased from 0.05 to 0.08
+          : 1 + (Math.random() - 0.5) * 0.04 * variationMultiplier; // Increased from 0.02 to 0.04
         span.style.fontSize = `${sizeVariation}em`;
       }
       

@@ -10,7 +10,7 @@ import { generateImages, downloadAsPDF, deleteAllImages } from '../utils/generat
 import { sanitizeRichTextContent } from '../utils/sanitize';
 import { PaperSizes } from '../types';
 import 'katex/dist/katex.min.css';
-import { Descendant } from 'slate';
+// Descendant removed as it's unused
 import RichTextEditor from '../components/RichTextEditor';
 import { slateValueToHtml, htmlToSlateValue } from '../utils/slate-serializer';
 import PlaceholderOverlay from '../components/PlaceholderOverlay';
@@ -51,13 +51,13 @@ const PAGE_EFFECTS = [
   { value: "no-effect", label: "No Effect" }
 ];
 
-// Paper texture URLs
-const PAPER_TEXTURES = [
-  { value: "", label: "None" },
-  { value: "/paper-textures/basic.jpg", label: "Basic Paper" },
-  { value: "/paper-textures/recycled.jpg", label: "Recycled Paper" },
-  { value: "/paper-textures/notebook.jpg", label: "Notebook Paper" }
-];
+// Paper texture URLs - Removed as PAPER_TEXTURES is unused
+// const PAPER_TEXTURES = [
+//   { value: "", label: "None" },
+//   { value: "/paper-textures/basic.jpg", label: "Basic Paper" },
+//   { value: "/paper-textures/recycled.jpg", label: "Recycled Paper" },
+//   { value: "/paper-textures/notebook.jpg", label: "Notebook Paper" }
+// ];
 
 // Example texts for different sections
 const EXAMPLE_MAIN_TEXT = `<p>The laws of physics help us understand the natural world. For example, Newton's Second Law of Motion can be expressed as:</p>
@@ -157,9 +157,9 @@ export default function Home() {
   
   // New features state
   const [randomizeHandwriting, setRandomizeHandwriting] = useState<boolean>(true);
-  const [realisticEffects, setRealisticEffects] = useState<boolean>(true);
-  const [selectedPaperTexture, setSelectedPaperTexture] = useState<string>("");
-  const [customPaperTexture, setCustomPaperTexture] = useState<string | null>(null);
+  const [realisticEffects] = useState<boolean>(true); // setRealisticEffects removed as it's unused
+  const [selectedPaperTexture, ] = useState<string>(""); // setSelectedPaperTexture removed as unused
+  const [customPaperTexture, ] = useState<string | null>(null); // setCustomPaperTexture removed as unused
   
   // Refs
   const paperRef = useRef<HTMLDivElement>(null);
@@ -191,18 +191,19 @@ export default function Home() {
     }
   }, [paperSize, paperRef]);
 
-  const handlePaperTextureUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+  // handlePaperTextureUpload removed as it's unused
+  // const handlePaperTextureUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  //   const file = e.target.files?.[0];
+  //   if (!file) return;
     
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      if (!e.target?.result) return;
-      setCustomPaperTexture(e.target.result as string);
-      setSelectedPaperTexture('custom');
-    };
-    reader.readAsDataURL(file);
-  };
+  //   const reader = new FileReader();
+  //   reader.onload = (e) => {
+  //     if (!e.target?.result) return;
+  //     setCustomPaperTexture(e.target.result as string);
+  //     setSelectedPaperTexture('custom');
+  //   };
+  //   reader.readAsDataURL(file);
+  // };
 
   const getPaperTextureUrl = (): string | undefined => {
     if (selectedPaperTexture === 'custom' && customPaperTexture) {

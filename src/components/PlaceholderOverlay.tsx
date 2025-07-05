@@ -33,24 +33,17 @@ const PlaceholderOverlay: React.FC<PlaceholderOverlayProps> = ({
     onDismiss();
   };
 
-  if (!visible) return null;
-
-  // Process the exampleText to properly render LaTeX formulas
-  const processedHtml = exampleText.replace(
-    /\$\$(.*?)\$\$|\$(.*?)\$/g,
-    (match, blockMath, inlineMath) => {
-      const formula = blockMath || inlineMath;
-      const isBlock = !!blockMath;
-      
-      return `<span class="katex-formula" data-formula="${formula}" data-block="${isBlock}"></span>`;
-    }
-  );
-
-  // After rendering, find and replace katex-formula spans with actual math
+  // This useEffect (Hook 3) must be called before any early returns.
+  // Its internal logic can depend on `visible`.
   useEffect(() => {
     if (visible) {
+      // The DOM query document.querySelectorAll('.katex-formula') is global.
+      // This could be problematic if other parts of the app use this class.
+      // Ideally, this should be scoped to the component's rendered output using a ref.
+      // However, for fixing the hook order, this internal logic remains for now.
       const formulaElements = document.querySelectorAll('.katex-formula');
       formulaElements.forEach(el => {
+        // Ensure the element is within this component instance if possible, though difficult with global query
         const formula = el.getAttribute('data-formula');
         const isBlock = el.getAttribute('data-block') === 'true';
         
@@ -74,6 +67,20 @@ const PlaceholderOverlay: React.FC<PlaceholderOverlayProps> = ({
       });
     }
   }, [visible, exampleText]);
+
+  if (!visible) return null; // Early return is now after all hooks
+
+  // Process the exampleText to properly render LaTeX formulas
+  // This needs to be defined before being used in dangerouslySetInnerHTML
+  const processedHtml = exampleText.replace(
+    /\$\$(.*?)\$\$|\$(.*?)\$/g,
+    (match, blockMath, inlineMath) => {
+      const formula = blockMath || inlineMath;
+      const isBlock = !!blockMath;
+
+      return `<span class="katex-formula" data-formula="${formula}" data-block="${isBlock}"></span>`;
+    }
+  );
 
   return (
     <div 

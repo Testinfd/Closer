@@ -31,34 +31,8 @@ export function getRandomWordSpacing(baseSpacing: number, variationAmount: numbe
   return baseSpacing + (Math.random() - 0.5) * variationAmount * 0.7;
 }
 
-/**
- * Creates a style object with random variations for text
- * @param options Base style options
- */
-export function createRandomizedTextStyle(options: {
-  fontSize: number;
-  letterSpacing: number;
-  wordSpacing: number;
-  baselineJitter: number;
-}) {
-  const { fontSize, letterSpacing, wordSpacing, baselineJitter } = options;
-  
-  return {
-    transform: `translateY(${getRandomBaselineJitter(baselineJitter)}px)`,
-    letterSpacing: `${getRandomLetterSpacing(letterSpacing)}px`,
-    wordSpacing: `${getRandomWordSpacing(wordSpacing)}px`,
-  };
-}
-
-/**
- * Randomly select one font variant from multiple options
- * @param fontVariants Array of font family names
- */
-export function getRandomFontVariant(fontVariants: string[]): string {
-  if (!fontVariants.length) return '';
-  const randomIndex = Math.floor(Math.random() * fontVariants.length);
-  return fontVariants[randomIndex];
-}
+// Removed unused function createRandomizedTextStyle
+// Removed unused function getRandomFontVariant
 
 /**
  * Creates a randomized character component with variations for letter appearance
@@ -300,7 +274,7 @@ export function applyWordVariations(element: HTMLElement, intensity: number = 0.
       
       // Create document fragment to replace text node
       const fragment = document.createDocumentFragment();
-      let currentPosition = 0;
+      // let currentPosition = 0; // Removed unused variable
       
       words.forEach((word, i) => {
         if (wordIndexesToVary.has(i)) {

@@ -60,22 +60,11 @@ const EnhancedPaper: React.FC<EnhancedPaperProps> = ({
   const contentRef = useRef<HTMLDivElement>(null);
   const sideNoteRef = useRef<HTMLDivElement>(null);
   const topNoteRef = useRef<HTMLDivElement>(null);
-  const [mainContent, setMainContent] = useState<Descendant[]>(DEFAULT_SLATE_VALUE);
-  const [sideContent, setSideContent] = useState<Descendant[]>(DEFAULT_SLATE_VALUE);
-  const [topContent, setTopContent] = useState<Descendant[]>(DEFAULT_SLATE_VALUE);
   const [editor] = useState(() => withHistory(withReact(createEditor())));
 
-  useEffect(() => {
-    setMainContent(htmlToSlateValue(initialValue));
-  }, [initialValue]);
-
-  useEffect(() => {
-    setSideContent(htmlToSlateValue(sideText));
-  }, [sideText]);
-  
-  useEffect(() => {
-    setTopContent(htmlToSlateValue(topText));
-  }, [topText]);
+  const mainContent = React.useMemo(() => htmlToSlateValue(initialValue), [initialValue]);
+  const sideContent = React.useMemo(() => htmlToSlateValue(sideText), [sideText]);
+  const topContent = React.useMemo(() => htmlToSlateValue(topText), [topText]);
 
   useEffect(() => {
     if (paperRef.current) {
@@ -218,7 +207,6 @@ const EnhancedPaper: React.FC<EnhancedPaperProps> = ({
   }, [paperTextureUrl, realisticInkEffects, randomizeHandwriting, inkColor, paperRef]);
 
   const handleMainContentChange = (newValue: Descendant[]) => {
-    setMainContent(newValue);
     try {
       const html = slateValueToHtml(newValue);
       onContentChange(html);
@@ -228,7 +216,6 @@ const EnhancedPaper: React.FC<EnhancedPaperProps> = ({
   };
   
   const handleSideContentChange = (newValue: Descendant[]) => {
-    setSideContent(newValue);
     try {
       const html = slateValueToHtml(newValue);
       onSideTextChange(html);
@@ -238,7 +225,6 @@ const EnhancedPaper: React.FC<EnhancedPaperProps> = ({
   };
 
   const handleTopContentChange = (newValue: Descendant[]) => {
-    setTopContent(newValue);
     try {
       const html = slateValueToHtml(newValue);
       onTopTextChange(html);

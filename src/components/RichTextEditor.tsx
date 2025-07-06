@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useCallback, useMemo, useState, useEffect } from 'react';
-import { createEditor, BaseEditor, Descendant, Node, NodeEntry, Transforms, Element } from 'slate';
+import { createEditor, BaseEditor, Descendant, Node, NodeEntry, Transforms, Element, Text, Editor } from 'slate';
 import { Slate, Editable, withReact, ReactEditor } from 'slate-react';
 import { withHistory } from 'slate-history';
 import katex from 'katex';
@@ -12,6 +12,7 @@ type CustomElement = {
   type: 'paragraph' | 'math';
   children: CustomText[];
   formula?: string;
+  inline?: boolean;
 };
 
 type CustomText = {
@@ -63,14 +64,63 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
     // Create editor with normalization to prevent errors
     const slateEditor = withHistory(withReact(createEditor()));
     
-    // Add custom normalization to ensure valid document structure
-    const { normalizeNode } = slateEditor;
+    const { normalizeNode, isInline } = slateEditor;
+
+    slateEditor.isInline = (element) => {
+      return element.type === 'math' && element.inline ? true : isInline(element);
+    };
     
-    slateEditor.normalizeNode = ([node, path]) => {
+    // Add custom normalization to ensure valid document structure
+    slateEditor.normalizeNode = (entry) => {
+      const [node, path] = entry;
+
+      if (Text.isText(node)) {
+        const text = node.text;
+
+        const blockMatch = /\$\$([\s\S]+?)\$\$/.exec(text);
+        if (blockMatch) {
+          const [fullMatch, formula] = blockMatch;
+          const { index } = blockMatch;
+
+          const point = { path, offset: index };
+          const range = { anchor: point, focus: { ...point, offset: index + fullMatch.length } };
+
+          Transforms.select(slateEditor, range);
+          Transforms.delete(slateEditor);
+
+          Transforms.insertNodes(
+            slateEditor,
+            { type: 'math', formula, inline: false, children: [{ text: '' }] },
+            { at: range.anchor, select: true }
+          );
+          
+          return;
+        }
+
+        const inlineMatch = /\$([^$]+?)\$/.exec(text);
+        if (inlineMatch) {
+          const [fullMatch, formula] = inlineMatch;
+          const { index } = inlineMatch;
+
+          const point = { path, offset: index };
+          const range = { anchor: point, focus: { ...point, offset: index + fullMatch.length } };
+          
+          Transforms.select(slateEditor, range);
+          Transforms.delete(slateEditor);
+
+          Transforms.insertNodes(
+            slateEditor,
+            { type: 'math', formula, inline: true, children: [{ text: '' }] },
+            { at: range.anchor, select: true }
+          );
+          
+          return;
+        }
+      }
+
       if (path.length === 0) {
         // Ensure the editor always has at least one valid paragraph
-        const children = Array.from(Node.children(node, path));
-        if (children.length === 0) {
+        if (slateEditor.children.length === 0) {
           Transforms.insertNodes(
             slateEditor,
             { type: 'paragraph', children: [{ text: '' }] } as CustomElement,
@@ -81,12 +131,21 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
       }
       
       // Continue with regular normalization
-      normalizeNode([node, path]);
+      normalizeNode(entry);
     };
     
     return slateEditor;
   }, []);
   
+  // Manually handle updates to reflect external changes
+  useEffect(() => {
+    // Only reset the editor if it's empty, to avoid resetting during edits.
+    if (editor.children.length === 1 && (editor.children[0] as any).children[0].text === '') {
+      editor.children = value;
+      editor.onChange();
+    }
+  }, [value, editor]);
+
   const [mounted, setMounted] = useState(false);
   
   // Make sure value is always valid
@@ -256,16 +315,9 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
       </div>
       {/* Use key to force remount when value changes dramatically */}
       <Slate 
-        key={safeValue !== value ? "default" : "provided"} 
         editor={editor} 
-        initialValue={safeValue} 
-        onChange={(newValue) => {
-          try {
-            onChange(newValue);
-          } catch (error) {
-            console.error("Error in Slate onChange handler:", error);
-          }
-        }}
+        initialValue={value}
+        onChange={onChange}
       >
         {mounted && (
           <Editable
@@ -315,18 +367,23 @@ const DefaultElement = (props: any) => {
 };
 
 const MathElement = (props: any) => {
-  const formula = props.element.formula;
-  const isInline = !formula.includes('\n');
+  const { attributes, children, element } = props;
+  const formula = element.formula;
+  const isInline = element.inline;
   
   return (
-    <div {...props.attributes} contentEditable={false}>
+    <span 
+      {...attributes} 
+      contentEditable={false} 
+      style={{ display: isInline ? 'inline-block' : 'block', margin: '5px 0' }}
+    >
       {isInline ? (
         <InlineMath math={formula} />
       ) : (
         <BlockMath math={formula} />
       )}
-      {props.children}
-    </div>
+      {children}
+    </span>
   );
 };
 

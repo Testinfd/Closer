@@ -42,17 +42,43 @@ export const deserialize = (el: globalThis.Node): any => {
     case 'u':
       return children.map((child) => ({ ...child, underline: true }));
     case 'div':
-      if (element.className === 'math-formula') {
+    case 'span':
+      if (element.classList.contains('math-formula')) {
         return {
           type: 'math',
           formula: element.dataset.formula,
-          children: [{ text: '' }]
+          inline: element.dataset.inline === 'true',
+          children: [{ text: '' }],
         };
       }
-      return { type: 'paragraph', children };
+      if (element.nodeName.toLowerCase() === 'div') {
+        return { type: 'paragraph', children };
+      }
+      return children;
     default:
       return children;
   }
+};
+
+// Helper function to convert KaTeX-style math to HTML Slate can understand
+const convertMathToHtml = (html: string): string => {
+  // Process block math formulas ($$...$$)
+  html = html.replace(/\$\$([\s\S]*?)\$\$/g, (match, formula) => {
+    const encodedFormula = formula.replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    return `<div class="math-formula" data-formula="${encodedFormula}" data-inline="false">
+      <span class="katex-formula">${encodedFormula}</span>
+    </div>`;
+  });
+
+  // Process inline math formulas ($...$)
+  html = html.replace(/\$([^$]+?)\$/g, (match, formula) => {
+    const encodedFormula = formula.replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    return `<span class="math-formula" data-formula="${encodedFormula}" data-inline="true">
+      <span class="katex-formula">${encodedFormula}</span>
+    </span>`;
+  });
+
+  return html;
 };
 
 // Convert HTML to Slate's initial value format
@@ -67,7 +93,8 @@ export const htmlToSlateValue = (html: string): Descendant[] => {
   }
 
   try {
-    const doc = new DOMParser().parseFromString(html, 'text/html');
+    const processedHtml = convertMathToHtml(html);
+    const doc = new DOMParser().parseFromString(processedHtml, 'text/html');
     const slateContent = deserialize(doc.body);
     return slateContent.length > 0 ? slateContent : DEFAULT_SLATE_VALUE;
   } catch (error) {
@@ -104,9 +131,11 @@ export const serialize = (node: Descendant): string => {
     }
     
     if ((node as any).type === 'math' && 'formula' in node) {
-      return `<div class="math-formula" data-formula="${(node as any).formula}">
+      const isInline = (node as any).inline;
+      const tag = isInline ? 'span' : 'div';
+      return `<${tag} class="math-formula" data-formula="${(node as any).formula}" data-inline="${isInline}">
         <span class="katex-formula">${(node as any).formula}</span>
-      </div>`;
+      </${tag}>`;
     }
     
     return children;

@@ -171,7 +171,7 @@ export function applyInkVariations(element: HTMLElement, inkColor: string, inten
       const variationMultiplier = isSpecialPosition ? intensity * 1.5 : intensity;
       
       // Random ink density with more noticeable variations
-      const densityVariation = variationMultiplier * 0.5; // Increased from 0.3 to 0.5
+      const densityVariation = variationMultiplier * 0.8; // Increased from 0.5 to 0.8
       const density = 0.8 + Math.random() * densityVariation;
       const darkR = Math.floor(rgb.r * density);
       const darkG = Math.floor(rgb.g * density);
@@ -179,8 +179,8 @@ export function applyInkVariations(element: HTMLElement, inkColor: string, inten
       
       // Apply more noticeable rotation
       const rotation = isSpecialPosition 
-        ? (Math.random() - 0.5) * 4 * variationMultiplier  // Increased from 2 to 4
-        : (Math.random() - 0.5) * 1.5 * variationMultiplier; // Increased from 0.7 to 1.5
+        ? (Math.random() - 0.5) * 6 * variationMultiplier  // Increased from 4 to 6
+        : (Math.random() - 0.5) * 2.5 * variationMultiplier; // Increased from 1.5 to 2.5
       
       // Apply enhanced styles
       span.style.color = `rgb(${darkR}, ${darkG}, ${darkB})`;
@@ -191,14 +191,14 @@ export function applyInkVariations(element: HTMLElement, inkColor: string, inten
         span.style.transform = `rotate(${rotation}deg)`;
         
         // Apply more noticeable baseline jitter
-        const baselineJitter = (Math.random() - 0.5) * variationMultiplier * 3; // Increased from 1.5 to 3
+        const baselineJitter = (Math.random() - 0.5) * variationMultiplier * 4; // Increased from 3 to 4
         span.style.position = 'relative';
         span.style.top = `${baselineJitter}px`;
         
         // Apply more noticeable size variation
         const sizeVariation = isSpecialPosition 
-          ? 1 + (Math.random() - 0.5) * 0.08 * variationMultiplier  // Increased from 0.05 to 0.08
-          : 1 + (Math.random() - 0.5) * 0.04 * variationMultiplier; // Increased from 0.02 to 0.04
+          ? 1 + (Math.random() - 0.5) * 0.12 * variationMultiplier  // Increased from 0.08 to 0.12
+          : 1 + (Math.random() - 0.5) * 0.06 * variationMultiplier; // Increased from 0.04 to 0.06
         span.style.fontSize = `${sizeVariation}em`;
       }
       
@@ -236,7 +236,7 @@ export function applyNonUniformLineEndings(element: HTMLElement, maxVariation: n
     
     // Add a very slight random rotation for more natural look
     // More subtle rotation
-    const rotation = (Math.random() - 0.5) * 0.3; // -0.15 to 0.15 degrees (was -0.25 to 0.25)
+    const rotation = (Math.random() - 0.5) * 0.5; // -0.15 to 0.15 degrees (was -0.3 to 0.5)
     (p as HTMLElement).style.transform = `rotate(${rotation}deg)`;
   });
 }
@@ -292,16 +292,16 @@ export function applyWordVariations(element: HTMLElement, intensity: number = 0.
           wordSpan.textContent = word;
           
           // Apply subtle letter spacing variation
-          const letterSpacing = (Math.random() - 0.5) * 0.5 * intensity;
+          const letterSpacing = (Math.random() - 0.5) * 0.8 * intensity; // Increased from 0.5 to 0.8
           wordSpan.style.letterSpacing = `${letterSpacing}px`;
           
           // Apply subtle baseline shift
-          const baselineShift = (Math.random() - 0.5) * intensity;
+          const baselineShift = (Math.random() - 0.5) * 1.5 * intensity; // Increased from 1 to 1.5
           wordSpan.style.position = 'relative';
           wordSpan.style.top = `${baselineShift}px`;
           
           // Very subtle rotation
-          const rotation = (Math.random() - 0.5) * intensity * 0.6;
+          const rotation = (Math.random() - 0.5) * intensity * 1.0; // Increased from 0.6 to 1.0
           wordSpan.style.display = 'inline-block';
           wordSpan.style.transform = `rotate(${rotation}deg)`;
           

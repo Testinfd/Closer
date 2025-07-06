@@ -1547,3 +1547,19 @@ body.dark .placeholder-overlay {
     bottom: auto;
   }
 }
+
+.katex {
+  font-family: inherit !important;
+  font-size: inherit !important;
+}
+
+.katex-display {
+  display: block;
+  margin: 1em 0;
+  text-align: center;
+}
+
+.katex-display > .katex {
+  display: inline-block;
+  text-align: initial;
+}

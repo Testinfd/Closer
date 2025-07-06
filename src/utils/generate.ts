@@ -414,9 +414,12 @@ export const generateImages = async (
     // Reset output images array
     outputImages = [];
 
-    const clientHeight = 514; // height of .paper-content when there is no content
+    const pageHeight = paperContentEl.clientHeight > 100 ? paperContentEl.clientHeight : 514;
     const scrollHeight = paperContentEl.scrollHeight;
-    const totalPages = Math.ceil(scrollHeight / clientHeight);
+    
+    // Add a tolerance to prevent creating extra pages for minor overflows
+    const tolerance = 10; // 10px tolerance
+    const totalPages = scrollHeight > pageHeight + tolerance ? Math.ceil(scrollHeight / pageHeight) : 1;
 
     // Set a reasonable limit to prevent browser crashes
     const maxPages = 50;
@@ -430,6 +433,9 @@ export const generateImages = async (
       // Process each page
       for (let i = 0; i < totalPages; i++) {
         try {
+          // Scroll to the correct page content
+          paperContentEl.scrollTop = i * pageHeight;
+
           // Apply proper styles for multi-page margins
           if (leftMarginEl) leftMarginEl.innerHTML = initialContent.leftMargin;
           if (topMarginEl) topMarginEl.innerHTML = initialContent.topMargin;
@@ -473,6 +479,7 @@ export const generateImages = async (
       
       // Restore original content
       paperContentEl.innerHTML = initialContent.paperContent;
+      paperContentEl.scrollTop = 0; // Reset scroll position
       
       const leftMarginEl = pageEl.querySelector('.left-margin') as HTMLElement | null;
       const topMarginEl = pageEl.querySelector('.top-margin') as HTMLElement | null;
